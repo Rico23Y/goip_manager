@@ -1,8 +1,8 @@
 ; -- GoIP Manager Inno Setup Script --
 
 [Setup]
-AppName=GoIP Manager
-AppVersion=1.2
+AppName=GoIP Manager 1.3v
+AppVersion=1.3
 AppPublisher=Rico Yarte
 AppPublisherURL=https://www.linkedin.com/in/rico-yarte/
 DefaultDirName={autopf}\GoIP Manager
@@ -30,7 +30,8 @@ Source: "installer_files\msedgedriver.exe"; DestDir: "{userappdata}\GoIP.Manager
 Source: "installer_files\logs\*"; DestDir: "{userappdata}\GoIP.Manager\logs"; Flags: recursesubdirs createallsubdirs
 
 ; ✅ UI icons → install next to the EXE so resource_path('icons/...') works
-Source: "installer_files\icons\*"; DestDir: "{app}\icons"; Flags: recursesubdirs createallsubdirs
+Source: "installer_files\icons\*"; DestDir: "{app}\installer_files\icons"; Flags: recursesubdirs createallsubdirs
+
 
 [Tasks]
 ; Optional checkboxes during installation

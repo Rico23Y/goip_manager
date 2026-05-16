@@ -12,6 +12,8 @@ from inbox_sms_tab import create_inbox_sms_tab
 from restart_tab import create_restart_tab
 from console_tab import create_console_tab, DualOutput
 
+app_version = 1.3
+
 def set_app_user_model_id(app_id="GoIP.Manager"):
     try:
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
@@ -90,7 +92,7 @@ class MainApp(QMainWindow):
         self.config_file = get_appdata_path("devices.json")
         icon_path = resource_path("icons", "signal.png")
         self.setWindowIcon(QIcon(icon_path))
-        self.setWindowTitle("GOIP Monitor App")
+        self.setWindowTitle(f"GOIP Monitor App {app_version}v")
         self.resize(950, 600)
 
         central_widget = QWidget()
