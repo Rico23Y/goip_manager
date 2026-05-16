@@ -15,8 +15,9 @@ DRIVER_PATH = os.path.join(DRIVER_DIR, WEBDRIVER_NAME)
 CONFIG_PATH = os.path.join(DRIVER_DIR, "webdriver_update_config.json")
 ICON_PATH = os.path.join(DRIVER_DIR, "icons", "drivers.png")
 
-EDGE_STORAGE_BASE = "https://msedgewebdriverstorage.blob.core.windows.net/edgewebdriver"
-LATEST_RELEASE_URL = "https://msedgedriver.azureedge.net/LATEST_RELEASE_{major}"
+EDGE_DOWNLOAD_URL = "https://msedgedriver.microsoft.com/{version}/edgedriver_win64.zip"
+LATEST_RELEASE_URL = "https://microsoft.com_{major}"
+
 
 def apply_icon(widget):
     """Apply custom window icon if available."""
@@ -117,14 +118,24 @@ def get_driver_version():
 
 
 def get_latest_driver_for_major(major_version):
-    """Fetch latest driver version for a given major version."""
+    """Fetch latest driver version using Microsoft's modern API."""
     try:
-        resp = requests.get(LATEST_RELEASE_URL.format(major=major_version), timeout=5)
+        # Fetch the official endpoints list
+        url = "https://microsoft.com"
+        resp = requests.get(url, timeout=5)
         if resp.ok:
-            return resp.text.strip()
+            data = resp.json()
+            for product in data:
+                if product.get("Product") == "Stable":
+                    # Grab the latest stable version matching your major release
+                    for release in product.get("Releases", []):
+                        ver = release.get("ProductVersion", "")
+                        if ver.startswith(f"{major_version}."):
+                            return ver
     except Exception:
         pass
     return None
+
 
 
 def same_major_minor(ver1, ver2):
@@ -156,7 +167,7 @@ def download_driver(edge_version, progress_callback=None):
     # --- kill driver if running ---
     kill_existing_driver()
 
-    url = f"{EDGE_STORAGE_BASE}/{edge_version}/edgedriver_win64.zip"
+    url = EDGE_DOWNLOAD_URL.format(version=edge_version)
     zip_path = os.path.join(DRIVER_DIR, "edgedriver.zip")
     temp_extract_dir = os.path.join(DRIVER_DIR, "edgedriver_tmp")
 
