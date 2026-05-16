@@ -1,0 +1,27 @@
+{
+    "enabled": true,
+    "sim_status": {
+        "enabled": true,
+        "values": []
+    },
+    "network_type": {
+        "enabled": true,
+        "values": [],
+        "operator": ">",
+        "count": 0
+    },
+    "signal": {
+        "enabled": true,
+        "bar": {
+            "enabled": true,
+            "values": []
+        },
+        "custom": {
+            "enabled": false,
+            "min": 0,
+            "max": 0,
+            "operator": ">",
+            "count": 0
+        }
+    }
+}
