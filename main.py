@@ -12,7 +12,7 @@ from inbox_sms_tab import create_inbox_sms_tab
 from restart_tab import create_restart_tab
 from console_tab import create_console_tab, DualOutput
 
-app_version = 1.3
+app_version = '1.3.1'
 
 def set_app_user_model_id(app_id="GoIP.Manager"):
     try:
