@@ -1,5 +1,5 @@
 ('C:\\Users\\No '
- 'Account\\Documents\\VsCode\\goip_manager\\build\\GoIP.Manager\\PYZ-00.pyz',
+ 'Account\\Documents\\VsCode\\goip_manager\\build\\Goip.Manager\\PYZ-00.pyz',
  [('PySide6',
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\PySide6\\__init__.py',
@@ -1372,6 +1372,10 @@
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\chromium\\service.py',
    'PYMODULE'),
+  ('selenium.webdriver.chromium.webdriver',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\chromium\\webdriver.py',
+   'PYMODULE'),
   ('selenium.webdriver.common',
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\__init__.py',
@@ -1460,6 +1464,10 @@
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\desired_capabilities.py',
    'PYMODULE'),
+  ('selenium.webdriver.common.driver_finder',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\driver_finder.py',
+   'PYMODULE'),
   ('selenium.webdriver.common.fedcm',
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\fedcm\\__init__.py',
@@ -1488,6 +1496,10 @@
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\proxy.py',
    'PYMODULE'),
+  ('selenium.webdriver.common.selenium_manager',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\selenium_manager.py',
+   'PYMODULE'),
   ('selenium.webdriver.common.service',
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\service.py',
@@ -1504,6 +1516,10 @@
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\virtual_authenticator.py',
    'PYMODULE'),
+  ('selenium.webdriver.common.webdriver',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\common\\webdriver.py',
+   'PYMODULE'),
   ('selenium.webdriver.edge',
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\edge\\__init__.py',
@@ -1519,6 +1535,10 @@
   ('selenium.webdriver.edge.service',
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\edge\\service.py',
+   'PYMODULE'),
+  ('selenium.webdriver.edge.webdriver',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\selenium\\webdriver\\edge\\webdriver.py',
    'PYMODULE'),
   ('selenium.webdriver.firefox',
    'C:\\Users\\No '

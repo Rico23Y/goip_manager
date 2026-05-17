@@ -1,8 +1,8 @@
 ; -- GoIP Manager Inno Setup Script --
 
 [Setup]
-AppName=GoIP Manager 1.3v
-AppVersion=1.3
+AppName=GoIP Manager 1.3.1v
+AppVersion=1.3.1
 AppPublisher=Rico Yarte
 AppPublisherURL=https://www.linkedin.com/in/rico-yarte/
 DefaultDirName={autopf}\GoIP Manager
@@ -34,9 +34,8 @@ Source: "installer_files\icons\*"; DestDir: "{app}\installer_files\icons"; Flags
 
 
 [Tasks]
-; Optional checkboxes during installation
-Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"; Flags: unchecked
-Name: "autostart"; Description: "Start GoIP Manager automatically with Windows"; GroupDescription: "Startup options:"; Flags: unchecked
+; Optional checkboxes during installation (Autostart removed from here)
+Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Icons]
 ; Start Menu shortcut (always created)
@@ -46,10 +45,9 @@ Name: "{group}\GoIP Manager"; Filename: "{app}\GoIP.Manager.exe"; IconFilename: 
 Name: "{commondesktop}\GoIP Manager"; Filename: "{app}\GoIP.Manager.exe"; IconFilename: "{app}\signal.ico"; Tasks: desktopicon
 
 [Registry]
-; Optional autostart (only if user selected the autostart task)
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; \
     ValueType: string; ValueName: "GoIP Manager"; \
-    ValueData: """{app}\GoIP.Manager.exe"""; Flags: uninsdeletevalue; Tasks: autostart
+
 
 [Run]
 ; Launch app after install
