@@ -1,12 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files # <-- Add this line
 
+# Collect every hidden component of plyer automatically
+plyer_submodules = collect_submodules('plyer')
+plyer_datas = collect_data_files('plyer')
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('installer_files/icons', 'icons')],
-    hiddenimports=['selenium.webdriver.edge.webdriver'],
+    datas=[('installer_files/icons', 'icons')] + plyer_datas, # <-- Combine plyer files here
+    hiddenimports=['selenium.webdriver.edge.webdriver'] + plyer_submodules, # <-- Combine submodules here
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

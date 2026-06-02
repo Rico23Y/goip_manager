@@ -19,7 +19,7 @@ _ICON_SIZE = QSize(18, 18)
 
 # --- Worker signals ---
 class WorkerSignals(QObject):
-    result = Signal(str, str, bool)  # goip_label, ip, online
+    result = Signal(str, str, bool)
 
 # --- Worker task ---
 class PortCheckTask(QRunnable):
@@ -27,11 +27,20 @@ class PortCheckTask(QRunnable):
         super().__init__()
         self.goip_label = goip_label
         self.ip = ip
-        self.signals = WorkerSignals()
+        
+        # Explicitly assign to self to prevent garbage collection 
+        self.signals = WorkerSignals() 
 
     def run(self):
-        online = is_port_open(self.ip)
-        self.signals.result.emit(self.goip_label, self.ip, online)
+        try:
+            online = is_port_open(self.ip)
+            # Ensure the signals container still exists before emitting
+            if hasattr(self, 'signals') and self.signals:
+                self.signals.result.emit(self.goip_label, self.ip, online)
+        except Exception as e:
+            print(f"Background thread error: {e}")
+
+
 
 
 

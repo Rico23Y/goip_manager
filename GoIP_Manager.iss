@@ -1,8 +1,8 @@
 ; -- GoIP Manager Inno Setup Script --
 
 [Setup]
-AppName=GoIP Manager 1.3.1v
-AppVersion=1.3.1
+AppName=GoIP Manager v1.3.2
+AppVersion=1.3.2
 AppPublisher=Rico Yarte
 AppPublisherURL=https://www.linkedin.com/in/rico-yarte/
 DefaultDirName={autopf}\GoIP Manager

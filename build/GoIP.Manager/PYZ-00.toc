@@ -1,5 +1,5 @@
 ('C:\\Users\\No '
- 'Account\\Documents\\VsCode\\goip_manager\\build\\Goip.Manager\\PYZ-00.pyz',
+ 'Account\\Documents\\VsCode\\goip_manager\\build\\GoIP.Manager\\PYZ-00.pyz',
  [('PySide6',
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\PySide6\\__init__.py',
@@ -1155,6 +1155,314 @@
   ('plyer.facades.wifi',
    'C:\\Users\\No '
    'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\facades\\wifi.py',
+   'PYMODULE'),
+  ('plyer.platforms',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\__init__.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\__init__.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.accelerometer',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\accelerometer.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.barometer',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\barometer.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.battery',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\battery.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.brightness',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\brightness.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.call',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\call.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.camera',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\camera.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.compass',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\compass.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.email',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\email.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.filechooser',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\filechooser.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.flash',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\flash.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.gps',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\gps.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.gravity',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\gravity.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.gyroscope',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\gyroscope.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.keystore',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\keystore.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.sms',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\sms.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.spatialorientation',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\spatialorientation.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.storagepath',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\storagepath.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.tts',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\tts.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.uniqueid',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\uniqueid.py',
+   'PYMODULE'),
+  ('plyer.platforms.ios.vibrator',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\ios\\vibrator.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\__init__.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.accelerometer',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\accelerometer.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.battery',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\battery.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.brightness',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\brightness.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.cpu',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\cpu.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.devicename',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\devicename.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.email',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\email.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.filechooser',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\filechooser.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.keystore',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\keystore.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.notification',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\notification.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.orientation',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\orientation.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.processors',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\processors.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.screenshot',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\screenshot.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.storagepath',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\storagepath.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.tts',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\tts.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.uniqueid',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\uniqueid.py',
+   'PYMODULE'),
+  ('plyer.platforms.linux.wifi',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\linux\\wifi.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\__init__.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.accelerometer',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\accelerometer.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.audio',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\audio.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.battery',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\battery.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.bluetooth',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\bluetooth.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.cpu',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\cpu.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.devicename',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\devicename.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.email',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\email.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.filechooser',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\filechooser.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.keystore',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\keystore.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.libs',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\libs\\__init__.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.libs.osx_motion_sensor',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\libs\\osx_motion_sensor.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.libs.osx_paths',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\libs\\osx_paths.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.notification',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\notification.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.screenshot',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\screenshot.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.storagepath',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\storagepath.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.tts',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\tts.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.uniqueid',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\uniqueid.py',
+   'PYMODULE'),
+  ('plyer.platforms.macosx.wifi',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\macosx\\wifi.py',
+   'PYMODULE'),
+  ('plyer.platforms.win',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\__init__.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.audio',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\audio.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.battery',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\battery.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.cpu',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\cpu.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.devicename',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\devicename.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.email',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\email.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.filechooser',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\filechooser.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.keystore',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\keystore.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.libs',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\libs\\__init__.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.libs.balloontip',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\libs\\balloontip.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.libs.batterystatus',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\libs\\batterystatus.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.libs.wifi_defs',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\libs\\wifi_defs.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.libs.win_api_defs',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\libs\\win_api_defs.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.notification',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\notification.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.screenshot',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\screenshot.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.storagepath',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\storagepath.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.tts',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\tts.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.uniqueid',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\uniqueid.py',
+   'PYMODULE'),
+  ('plyer.platforms.win.wifi',
+   'C:\\Users\\No '
+   'Account\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\plyer\\platforms\\win\\wifi.py',
    'PYMODULE'),
   ('plyer.utils',
    'C:\\Users\\No '
