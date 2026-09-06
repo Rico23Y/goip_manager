@@ -1,0 +1,5 @@
+build/
+dist/
+*.spec
+Output/
+dist_installer/
