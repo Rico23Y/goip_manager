@@ -12,6 +12,11 @@ from inbox_sms_tab import create_inbox_sms_tab
 from restart_tab import create_restart_tab
 from console_tab import create_console_tab, DualOutput
 
+
+from app.repositories.device_repository import DeviceRepository
+from app.models.goip_device import GoipDevice
+
+
 app_version = '1.3.2'
 
 def set_app_user_model_id(app_id="GoIP.Manager"):
@@ -89,6 +94,7 @@ class MainApp(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.device_repository = DeviceRepository()
         self.config_file = get_appdata_path("devices.json")
         icon_path = resource_path("icons", "signal.png")
         self.setWindowIcon(QIcon(icon_path))
@@ -492,35 +498,40 @@ class MainApp(QMainWindow):
         ]
 
     def save_devices_to_file(self):
-        data = []
-        for index, row in enumerate(self.get_device_rows(), start=1):
-            row_data = row.to_dict()
-            row_data["goip"] = f"GOIP {index}"
-            data.append(row_data)
+        devices = []
 
-        with open(self.config_file, "w") as f:
-            json.dump(data, f, indent=4)
-            f.flush()
-            os.fsync(f.fileno())
-            self.devices_changed.emit()
+        for row in self.get_device_rows():
+            devices.append(
+                GoipDevice(
+                    ip_address=row.ip_input.text(),
+                    username=row.username_input.text(),
+                    password=row.password_input.text(),
+                )
+            )
+
+        self.device_repository.save_devices(devices)
+        self.devices_changed.emit()
+
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Saved File")
 
     def load_devices_from_file(self):
         global devices
+
         if os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                try:
-                    devices = json.load(f)
-                    if devices:
-                        for dev in devices:
-                            self.add_device_row(
-                                ip=dev.get("ip", ""),
-                                username=dev.get("username", ""),
-                                password=dev.get("password", "")
-                            )
-                        return
-                except json.JSONDecodeError:
-                    print("Invalid JSON")
+            try:
+                devices = self.device_repository.load_devices()
+
+                if devices:
+                    for dev in devices:
+                        self.add_device_row(
+                            ip=dev.ip_address,
+                            username=dev.username,
+                            password=dev.password
+                        )
+                    return
+
+            except json.JSONDecodeError:
+                print("Invalid JSON")
 
         self.add_device_row()
 
