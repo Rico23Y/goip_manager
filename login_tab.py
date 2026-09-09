@@ -11,6 +11,9 @@ from PySide6.QtCore import (
 )
 from utils import launch_home_tabs, reload_devices, resource_path
 
+from app.models.goip_device import GoipDevice
+from app.repositories.device_repository import DeviceRepository
+
 # Small, consistent button and icon sizes
 _BTN_SIZE = QSize(28, 28)
 _ICON_SIZE = QSize(18, 18)
@@ -488,27 +491,58 @@ class DeviceRow(QWidget):
 
 
 class DeviceListLayout(QVBoxLayout):
-    def __init__(self, main_window):
+    def __init__(
+        self,
+        main_window,
+        device_repository: DeviceRepository
+    ) -> None:
         super().__init__()
+
         self.main_window = main_window
+        self.device_repository = device_repository
+
         self.setSpacing(6)
         self.setContentsMargins(8, 8, 8, 8)
         self.animating = False
 
-    def has_unsaved_changes(self):
+    def has_unsaved_changes(self) -> bool:
         current = []
+
         for i in range(self.count()):
             widget = self.itemAt(i).widget()
+
             if isinstance(widget, DeviceRow):
                 current.append(widget.to_dict())
 
-        saved = reload_devices()
-
-        # compare only ip/username/password fields
-        return current != [
-            {k: v for k, v in d.items() if k in ("ip", "username", "password")}
-            for d in saved
+        saved = [
+            {
+                "ip": device.ip_address,
+                "username": device.username,
+                "password": device.password,
+            }
+            for device in self.device_repository.load_devices()
         ]
+
+        return current != saved
+
+    def save_devices(self) -> None:
+        devices = []
+
+        for i in range(self.count()):
+            widget = self.itemAt(i).widget()
+
+            if isinstance(widget, DeviceRow):
+                data = widget.to_dict()
+
+                devices.append(
+                    GoipDevice(
+                        ip_address=data["ip"],
+                        username=data["username"],
+                        password=data["password"],
+                    )
+                )
+
+        self.device_repository.save_devices(devices)
 
     def open_all_in_browser(self):
         # ✅ Only check once at the layout level
@@ -548,7 +582,10 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QS
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 
-def create_login_tab(main_window):
+def create_login_tab(
+    main_window,
+    device_repository: DeviceRepository
+):
     # === CONFIG (rounded scrollable container) ===
     SCROLL_BG = "#f2f8ff"     # background color of the scrollable container
     RADIUS    = 12            # corner radius in px
@@ -576,7 +613,10 @@ def create_login_tab(main_window):
     scroll_layout.setContentsMargins(0, 0, 0, 0)
     scroll_layout.setSpacing(0)
 
-    devices_layout = DeviceListLayout(main_window)
+    devices_layout = DeviceListLayout(
+        main_window,
+        device_repository
+    )
     main_window.devices_layout = devices_layout  # accessible in MainApp
     scroll_layout.addLayout(devices_layout)
 

@@ -3,3 +3,4 @@ dist/
 *.spec
 Output/
 dist_installer/
+test_code.py

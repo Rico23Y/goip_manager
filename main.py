@@ -118,7 +118,10 @@ class MainApp(QMainWindow):
         self.stackedWidget = QStackedWidget()
 
         # Tabs
-        self.login_tab = create_login_tab(self)
+        self.login_tab = create_login_tab(
+            self,
+            self.device_repository
+        )
         self.login_tab_index = self.stackedWidget.addWidget(self.login_tab)
         self.sideBar.addItem("Login")
 
@@ -497,19 +500,8 @@ class MainApp(QMainWindow):
             if isinstance(self.devices_layout.itemAt(i).widget(), DeviceRow)
         ]
 
-    def save_devices_to_file(self):
-        devices = []
-
-        for row in self.get_device_rows():
-            devices.append(
-                GoipDevice(
-                    ip_address=row.ip_input.text(),
-                    username=row.username_input.text(),
-                    password=row.password_input.text(),
-                )
-            )
-
-        self.device_repository.save_devices(devices)
+    def save_devices_to_file(self) -> None:
+        self.devices_layout.save_devices()
         self.devices_changed.emit()
 
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Saved File")
