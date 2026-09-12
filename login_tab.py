@@ -28,10 +28,9 @@ class DeviceRow(QWidget):
       - Add / Delete height animations
       - Smooth swap animation (Up/Down) using overlay ghosts
     """
-    def __init__(self, parent_layout, main_window):
+    def __init__(self, parent_layout) -> None:
         super().__init__()
         self.parent_layout = parent_layout
-        self.main_window = main_window
 
         self._has_error = False   # tracks red-border state across updates
         self._swap_anim_group = None
@@ -180,7 +179,7 @@ class DeviceRow(QWidget):
         reply = msg_box.exec()
 
         if reply == QMessageBox.Yes:
-            self.main_window.save_devices_to_file()
+            self.parent_layout.save_devices()
             return True  # continue
         elif reply == QMessageBox.No:
             return True  # continue without saving
@@ -428,7 +427,7 @@ class DeviceRow(QWidget):
             # Update labels, buttons, and save
             layout.update_goip_labels()
             layout.update_delete_buttons()
-            layout.main_window.save_devices_to_file()
+            layout.save_devices()
 
             # Clear refs & unlock
             self._swap_anim_group = None
@@ -457,7 +456,7 @@ class DeviceRow(QWidget):
                 self.deleteLater()
                 self.parent_layout.update_goip_labels()
                 self.parent_layout.update_delete_buttons()
-                self.parent_layout.main_window.save_devices_to_file()
+                self.parent_layout.save_devices()
                 return
             self.setMaximumHeight(max(0, curr_h - (i[0] + 1) * delta))
             i[0] += 1
@@ -493,12 +492,10 @@ class DeviceRow(QWidget):
 class DeviceListLayout(QVBoxLayout):
     def __init__(
         self,
-        main_window,
         device_repository: DeviceRepository
     ) -> None:
         super().__init__()
 
-        self.main_window = main_window
         self.device_repository = device_repository
 
         self.setSpacing(6)
@@ -614,7 +611,6 @@ def create_login_tab(
     scroll_layout.setSpacing(0)
 
     devices_layout = DeviceListLayout(
-        main_window,
         device_repository
     )
     main_window.devices_layout = devices_layout  # accessible in MainApp

@@ -485,7 +485,7 @@ class MainApp(QMainWindow):
         self.last_tab_index = new_index
 
     def add_device_row(self, ip="", username="", password=""):
-        row = DeviceRow(self.devices_layout, self)
+        row = DeviceRow(self.devices_layout)
         row.ip_input.setText(str(ip) if ip else "")
         row.username_input.setText(str(username) if username else "")
         row.password_input.setText(str(password) if password else "")
