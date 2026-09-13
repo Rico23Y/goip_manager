@@ -6,7 +6,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QIcon
 from inboxSMS import launch_inboxSMS_tabs
-from utils import is_port_open, reload_devices, resource_path
+from utils import is_port_open, resource_path
+from app.repositories.device_repository import DeviceRepository
 
 _BTN_SIZE = QSize(28, 28)
 _ICON_SIZE = QSize(18, 18)
@@ -28,8 +29,13 @@ class PortCheckTask(QRunnable):
         self.signals.result.emit(self.goip_label, self.ip, online)
 
 class InboxSMSTab(QWidget):
-    def __init__(self):
+    def __init__(
+        self,
+        device_repository: DeviceRepository
+    ) -> None:
         super().__init__()
+
+        self.device_repository = device_repository
         self.setObjectName("InboxSMSTab")
         self.goip_frame_cache = {}    # goip_label -> (ip_lbl, status_lbl)
         self.last_status_cache = {}   # goip_label -> (ip, online)
@@ -75,17 +81,18 @@ class InboxSMSTab(QWidget):
         while self.scroll_layout.count():
             item = self.scroll_layout.takeAt(0)
             widget = item.widget()
+
             if widget:
                 widget.deleteLater()
 
-        devices = reload_devices()
+        devices = self.device_repository.load_devices()
 
         self.goip_frame_cache.clear()
         self.last_status_cache.clear()
 
         for idx, dev in enumerate(devices, start=1):
-            goip_label = dev.get("goip", f"GOIP {idx}")
-            ip = dev.get("ip", "")
+            goip_label = f"GOIP {idx}"
+            ip = dev.ip_address
 
             # Placeholder labels
             frame = QFrame()
@@ -131,11 +138,12 @@ class InboxSMSTab(QWidget):
             self.threadpool.start(task)
 
     def update_status(self):
-        devices = reload_devices()
+        devices = self.device_repository.load_devices()
 
-        for idx, dev in enumerate(devices, start=1):
-            goip_label = dev.get("goip", f"GOIP {idx}")
-            ip = dev.get("ip", "")
+        for idx, device in enumerate(devices, start=1):
+            goip_label = f"GOIP {idx}"
+            ip = device.ip_address
+
             task = PortCheckTask(goip_label, ip)
             task.signals.result.connect(self.update_ui_status)
             self.threadpool.start(task)
@@ -151,5 +159,7 @@ class InboxSMSTab(QWidget):
             self.last_status_cache[goip_label] = (ip, online)
 
 
-def create_inbox_sms_tab():
-    return InboxSMSTab()
+def create_inbox_sms_tab(
+    device_repository: DeviceRepository
+):
+    return InboxSMSTab(device_repository)

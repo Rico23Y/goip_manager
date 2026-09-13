@@ -129,7 +129,9 @@ class MainApp(QMainWindow):
         self.port_status_tab_index = self.stackedWidget.addWidget(self.port_status_tab)
         self.sideBar.addItem("Port Status")
 
-        self.inbox_sms_tab = create_inbox_sms_tab()
+        self.inbox_sms_tab = create_inbox_sms_tab(
+            self.device_repository
+        )
         self.inbox_sms_tab_index = self.stackedWidget.addWidget(self.inbox_sms_tab)
         self.sideBar.addItem("Inbox SMS")
 
