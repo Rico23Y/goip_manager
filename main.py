@@ -125,7 +125,9 @@ class MainApp(QMainWindow):
         self.login_tab_index = self.stackedWidget.addWidget(self.login_tab)
         self.sideBar.addItem("Login")
 
-        self.port_status_tab = create_port_status_tab()
+        self.port_status_tab = create_port_status_tab(
+            self.device_repository
+        )
         self.port_status_tab_index = self.stackedWidget.addWidget(self.port_status_tab)
         self.sideBar.addItem("Port Status")
 
@@ -135,7 +137,7 @@ class MainApp(QMainWindow):
         self.inbox_sms_tab_index = self.stackedWidget.addWidget(self.inbox_sms_tab)
         self.sideBar.addItem("Inbox SMS")
 
-        self.restart_tab = create_restart_tab()
+        self.restart_tab = create_restart_tab(self.device_repository)
         self.restart_tab_index = self.stackedWidget.addWidget(self.restart_tab)
         self.sideBar.addItem("Restart")
 

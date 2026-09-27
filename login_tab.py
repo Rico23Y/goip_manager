@@ -7,9 +7,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     QRegularExpression, Qt, QTimer, QSize, QPoint, QEasingCurve, QPropertyAnimation,
-    QParallelAnimationGroup, Signal
+    QParallelAnimationGroup
 )
-from utils import launch_home_tabs, reload_devices, resource_path
+from utils import launch_home_tabs, resource_path
 
 from app.models.goip_device import GoipDevice
 from app.repositories.device_repository import DeviceRepository
@@ -190,7 +190,10 @@ class DeviceRow(QWidget):
         goip_index = self.parent_layout.indexOf(self) + 1  # 1-based index
         if not self.unsaved_message():
             return  # Cancel clicked → stop here
-        launch_home_tabs(goip_index)
+        launch_home_tabs(
+            self.parent_layout.device_repository,
+            goip_index
+        )
 
     # ---------- Styling helpers ----------
     def _apply_style(self):
@@ -533,6 +536,7 @@ class DeviceListLayout(QVBoxLayout):
 
                 devices.append(
                     GoipDevice(
+                        goip=f"GOIP {i + 1}",
                         ip_address=data["ip"],
                         username=data["username"],
                         password=data["password"],

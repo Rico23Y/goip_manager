@@ -7,10 +7,11 @@ from PySide6.QtGui import QPixmap, QIcon, QIntValidator, QTextCursor, QPalette, 
 from PySide6.QtCore import Qt, QTimer, QObject, Signal, QThread, QObject, Signal, Slot, QRunnable, QThreadPool, \
     QMetaObject, Q_ARG, QSize
 from portStatus import start_goip_monitoring, get_goip_status_data, launch_view_tabs, update_notification_settings_from_ui
-from utils import status_map, is_port_open, signal_to_level, NETWORK_LABEL, get_appdata_path, reload_devices, \
+from utils import status_map, is_port_open, signal_to_level, NETWORK_LABEL, get_appdata_path, \
     resource_path
 import json
 import os
+from app.repositories.device_repository import DeviceRepository
 
 #from test_00 import get_goip_status_fake_data # testing data
 
@@ -84,8 +85,14 @@ class IconLoaderWorker(QRunnable):
 
 
 class PortStatusTab(QWidget):
-    def __init__(self):
+    def __init__(
+        self,
+        device_repository: DeviceRepository
+    ) -> None:
         super().__init__()
+
+        self.device_repository = device_repository
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh_data)
 
@@ -95,7 +102,6 @@ class PortStatusTab(QWidget):
         self.goip_layouts = {}
         self.goip_frame_cache = {}
         self.monitor_running = False
-
 
         # Cache for static view comparison
         self.last_static_status = {}  # goip_label -> (ip, online)
@@ -227,10 +233,13 @@ class PortStatusTab(QWidget):
             if widget:
                 widget.deleteLater()
 
-        devices = reload_devices()
+        devices = self.device_repository.load_devices()
 
         # Set goip -> ip map for hover tooltip use
-        self.goip_ip_map = {dev.get("goip", f"GOIP {i + 1}"): dev.get("ip", "") for i, dev in enumerate(devices)}
+        self.goip_ip_map = {
+            f"GOIP {i + 1}": dev.ip_address
+            for i, dev in enumerate(devices)
+        }
 
         self.goip_frame_cache.clear()
         self.last_static_status.clear()
@@ -240,8 +249,8 @@ class PortStatusTab(QWidget):
             self.threadpool = QThreadPool()
 
         for idx, dev in enumerate(devices, start=1):
-            goip_label = dev.get("goip", f"GOIP {idx}")
-            ip = dev.get("ip", "")
+            goip_label = f"GOIP {idx}"
+            ip = dev.ip_address
 
             # Placeholder UI
             frame = QFrame()
@@ -330,7 +339,12 @@ class PortStatusTab(QWidget):
 
         # Start GOIP initialization in a thread
         self.thread = QThread()
-        self.worker = MonitorWorker(lambda: start_goip_monitoring(True))
+        self.worker = MonitorWorker(
+            lambda: start_goip_monitoring(
+                device_repository=self.device_repository,
+                will_run=True
+            )
+        )
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)
@@ -352,34 +366,41 @@ class PortStatusTab(QWidget):
         self.notification_button.setEnabled(True)
         self.open_all_browser_button.setEnabled(True)
 
-        self.status_data = get_goip_status_data()
+        self.status_data = get_goip_status_data(self.device_repository)
         self.render_status_grid()  # 💡 Renders the live GOIP status UI
         self.timer.start(1000)
         self.refresh_data()
 
     def stop_monitoring(self):
-        start_goip_monitoring(False)
-        self.timer.stop()  # ❗ Stop refreshing data
+        start_goip_monitoring(
+            device_repository=self.device_repository,
+            will_run=False
+        )
+
+        self.timer.stop()
         self.monitor_running = False
-        # Clear dynamic data/state
+
         self.label_cache.clear()
         self.goip_layouts.clear()
+
         self.run_button.setText("Run Port Inspection")
-        self.run_button.setStyleSheet("background-color: green; color: white; font-weight: bold;")
+        self.run_button.setStyleSheet(
+            "background-color: green; color: white; font-weight: bold;"
+        )
         self.run_button.setChecked(False)
-        self.show_goip_ip_status()  # ✅ Restore static online/offline view
-        # Resume static updates
+
+        self.show_goip_ip_status()
         self.static_timer.start(2000)
 
     def update_static_view(self):
         if self.monitor_running:
             return
 
-        devices = reload_devices()
+        devices = self.device_repository.load_devices()
 
         # Update goip -> ip map
         self.goip_ip_map = {
-            dev.get("goip", f"GOIP {i + 1}"): dev.get("ip", "")
+            f"GOIP {i + 1}": dev.ip_address
             for i, dev in enumerate(devices)
         }
 
@@ -388,8 +409,8 @@ class PortStatusTab(QWidget):
             self.threadpool = QThreadPool()
 
         for idx, dev in enumerate(devices, start=1):
-            goip_label = dev.get("goip", f"GOIP {idx}")
-            ip = dev.get("ip", "")
+            goip_label = f"GOIP {idx}"
+            ip = dev.ip_address
 
             prev_status = self.last_static_status.get(goip_label)
             current_status = (ip, None)  # Status unknown yet
@@ -405,13 +426,20 @@ class PortStatusTab(QWidget):
                 # Build new frame
                 frame = QFrame()
                 frame.setFrameShape(QFrame.NoFrame)
-                frame.setStyleSheet("background-color: #ebf3fc;" if idx % 2 else "background-color: white")
+                frame.setStyleSheet(
+                    "background-color: #ebf3fc;"
+                    if idx % 2
+                    else "background-color: white"
+                )
+
                 layout = QHBoxLayout(frame)
 
                 goip_lbl = QLabel(goip_label)
                 ip_lbl = QLabel(f"IP: {ip}")
                 status_lbl = QLabel("Checking...")
-                status_lbl.setStyleSheet("color: gray; font-weight: bold")
+                status_lbl.setStyleSheet(
+                    "color: gray; font-weight: bold"
+                )
 
                 frame.goip_lbl = goip_lbl
                 frame.ip_lbl = ip_lbl
@@ -424,11 +452,14 @@ class PortStatusTab(QWidget):
 
                 self.scroll_layout.addWidget(frame)
                 self.goip_frame_cache[goip_label] = frame
+
             else:
                 # Existing frame, mark status as checking
                 frame.ip_lbl.setText(f"IP: {ip}")
                 frame.status_lbl.setText("Checking...")
-                frame.status_lbl.setStyleSheet("color: gray; font-weight: bold")
+                frame.status_lbl.setStyleSheet(
+                    "color: gray; font-weight: bold"
+                )
 
             # Start threaded port check
             task = PortCheckTask(goip_label, ip)
@@ -439,7 +470,7 @@ class PortStatusTab(QWidget):
         if not self.monitor_running:
             return  # Safety check
 
-        self.status_data = get_goip_status_data()
+        self.status_data = get_goip_status_data(self.device_repository)
         icon_tasks = []  # collect icon jobs
 
         for goip_label in sorted(self.status_data.keys(), key=lambda k: int(k.split()[1])):
@@ -891,5 +922,7 @@ class NotificationSettingsDialog(QDialog):
         update_notification_settings_from_ui()
         self.accept()
 
-def create_port_status_tab():
-    return PortStatusTab()
+def create_port_status_tab(
+    device_repository: DeviceRepository
+) -> PortStatusTab:
+    return PortStatusTab(device_repository)

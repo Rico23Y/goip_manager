@@ -3,6 +3,8 @@ from utils import *
 import copy
 from collections import defaultdict
 from utils import get_appdata_path, resource_path
+from app.models.goip_device import GoipDevice
+from app.repositories.device_repository import DeviceRepository
 
 NOTIFICATION_FILE = get_appdata_path("notification_setting.json")
 
@@ -32,8 +34,11 @@ _notification_settings = {}
 
 # ------------------------- internal helpers -------------------------
 
-def scrape_goip_data(device, session):
-    ip = device["ip"]
+def scrape_goip_data(
+    device: GoipDevice,
+    session
+):
+    ip = device.ip_address
     data_url = f"http://{ip}/get_parameter.html"
 
     headers = {
@@ -65,7 +70,6 @@ def scrape_goip_data(device, session):
             print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ({ip}) Skipped malformed row: {row}")
             continue
 
-    #print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✔️ {device["goip"]} Scrape successful ({device["ip"]}).")
     return result
 
 # Get the correct base path (works both in Python and frozen exe)
@@ -104,7 +108,10 @@ def _update_state(ip: str, *, status=None, is_running=None, description=None):
 
 # ------------------------- monitor logic ---------------------------
 
-def monitor_scraper_loop(device: dict, stop_event: threading.Event):
+def monitor_scraper_loop(
+    device: GoipDevice,
+    stop_event: threading.Event
+):
     """
     Per-device monitor loop:
     - Logs in once to reuse session
@@ -115,8 +122,10 @@ def monitor_scraper_loop(device: dict, stop_event: threading.Event):
     retry_delays = [60, 300, 600]
     max_attempts = len(retry_delays)
     attempt = 0
-    ip = device["ip"]
-    goip = device["goip"]
+
+    ip = device.ip_address
+    goip = device.goip
+
     session = None
     is_online = True
 
@@ -184,36 +193,33 @@ def monitor_scraper_loop(device: dict, stop_event: threading.Event):
 
 # --------------------------- Public API ----------------------------
 
-def start_goip_monitoring(will_run: bool = True):
-    """
-    Start or stop the background monitoring system.
-
-    - start_goip_monitoring(True):
-        * opens scraper tabs (once)
-        * starts one monitor thread per GOIP (parallel)
-    - start_goip_monitoring(False):
-        * signals all threads to stop and closes all scraper drivers
-        * leaves _goip_state with isRunning=False and description 'Stopped by user'
-    """
-    global _RUNNING, devices
+def start_goip_monitoring(
+    device_repository: DeviceRepository,
+    will_run: bool = True
+):
+    global _RUNNING
 
     with _INIT_LOCK:
         if will_run:
             if _RUNNING:
-                # Already running; nothing to do
                 return
+
             try:
-                devices = reload_devices()
+                devices = device_repository.load_devices()
             except Exception as e:
-                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [ERROR] Failed to load devices.json:", e)
+                print(
+                    f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                    f"[ERROR] Failed to load devices:",
+                    e
+                )
                 return
+
             load_notification_settings()
 
-            # Start per-GOIP monitor threads (parallel)
             for device in devices:
-                goip = device["goip"]
+                goip = device.goip
 
-                if not device.get("enabled", True):  # Optional: support disabling
+                if not device.enabled:
                     continue
 
                 if goip in _monitor_threads and _monitor_threads[goip].is_alive():
@@ -221,44 +227,29 @@ def start_goip_monitoring(will_run: bool = True):
 
                 ev = threading.Event()
                 _stop_events[goip] = ev
-                t = threading.Thread(target=monitor_scraper_loop, args=(device, ev),
-                                     daemon=True, name=f"mon-{goip}")
+
+                t = threading.Thread(
+                    target=monitor_scraper_loop,
+                    args=(device, ev),
+                    daemon=True,
+                    name=f"mon-{goip}"
+                )
 
                 _monitor_threads[goip] = t
                 t.start()
 
             _RUNNING = True
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [INFO] GoIP monitoring started.")
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"[INFO] GoIP monitoring started."
+            )
 
-        else:
-            if not _RUNNING:
-                # Already stopped
-                return
-            # Signal all threads to stop
-            for ev in _stop_events.values():
-                ev.set()
+def get_goip_status_data(device_repository: DeviceRepository) -> dict:
+    devices = device_repository.load_devices()
 
-            # Join threads
-            for goip, t in list(_monitor_threads.items()):
-                try:
-                    t.join(timeout=3.0)
-                except Exception:
-                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Time out",Exception)
-                    pass
-
-            _monitor_threads.clear()
-            _stop_events.clear()
-
-            # Mark states as stopped
-            for goip in list(_goip_state.keys()):
-                _update_state(goip, is_running=False, description="Stopped by user")
-
-            _RUNNING = False
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [INFO] GoIP monitoring stopped.")
-
-def get_goip_status_data() -> dict:
     timeout = 10
     start_time = time.time()
+
     while time.time() - start_time < timeout:
         if len(_goip_state) == len(devices):
             break
@@ -277,18 +268,23 @@ def select_list_mode(driver, wait):
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
 
-def launch_view_tabs(goip_window = 0):
+def launch_view_tabs(device_repository, goip_window=0):
     """
     Optional function to open viewer-only tabs (non-scraping UI).
-    Can run multiple or single window
+    Can run multiple or single window.
     """
     viewer_driver, viewer_main_window = viewer_options()
     os.system('cls')
 
-    if goip_window == 0 :
+    if goip_window == 0:
         try:
-            open_viewer_tabs("port_status_en.html", "Port Status Opened",
-                             viewer_driver, post_login_action=select_list_mode)
+            open_viewer_tabs(
+                "port_status_en.html",
+                "Port Status Opened",
+                viewer_driver,
+                post_login_action=select_list_mode,
+                device_repository=device_repository
+            )
 
             viewer_driver.switch_to.window(viewer_main_window)
             viewer_driver.close()
@@ -297,9 +293,15 @@ def launch_view_tabs(goip_window = 0):
 
     if goip_window > 0:
         try:
-            devices = reload_devices()
-            login_to_device("port_status_en.html", "Port Status Opened",
-                            viewer_driver, devices[goip_window - 1], post_login_action=select_list_mode)
+            devices = device_repository.load_devices()
+
+            login_to_device(
+                "port_status_en.html",
+                "Port Status Opened",
+                viewer_driver,
+                devices[goip_window - 1],
+                post_login_action=select_list_mode
+            )
         except Exception:
             pass
 
