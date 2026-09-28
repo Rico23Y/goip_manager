@@ -10,26 +10,43 @@ def launch_inboxSMS_tabs(
     os.system('cls')
     if goip_window == 0:
         try:
-            open_viewer_tabs("goip_sms_inbox_en.html", "Port Status Opened",
-                             viewer_driver)
+            open_viewer_tabs(
+                "goip_sms_inbox_en.html",
+                "Inbox SMS Opened",
+                viewer_driver,
+                device_repository
+            )
 
             viewer_driver.switch_to.window(viewer_main_window)
             viewer_driver.close()
-        except Exception:
-            pass
+
+        except Exception as e:
+            print(f"Error opening inbox tabs: {e}")
 
     if goip_window > 0:
         try:
             devices = device_repository.load_devices()
 
-            login_to_device(
+            if goip_window > len(devices):
+                print(
+                    f"Invalid GOIP number: {goip_window}. "
+                    f"Only {len(devices)} devices available."
+                )
+                return
+
+            success = login_to_device(
                 "goip_sms_inbox_en.html",
-                "Port Status Opened",
+                "Inbox SMS Opened",
                 viewer_driver,
                 devices[goip_window - 1]
             )
-        except Exception:
-            pass
+
+            if not success:
+                viewer_driver.close()
+                viewer_driver.switch_to.window(viewer_main_window)
+
+        except Exception as e:
+            print(f"Error opening inbox page: {e}")
 
 
 

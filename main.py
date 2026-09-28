@@ -390,6 +390,9 @@ class MainApp(QMainWindow):
         )
 
     def closeEvent(self, event):
+        # Stop Inbox SMS background workers/timer
+        self.inbox_sms_tab.stop_updates()
+
         super().closeEvent(event)
 
     def message_running(self, message_about,message_type):
