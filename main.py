@@ -12,6 +12,11 @@ from inbox_sms_tab import create_inbox_sms_tab
 from restart_tab import create_restart_tab
 from console_tab import create_console_tab, DualOutput
 
+
+from app.repositories.device_repository import DeviceRepository
+from app.models.goip_device import GoipDevice
+
+
 app_version = '1.3.2'
 
 def set_app_user_model_id(app_id="GoIP.Manager"):
@@ -89,6 +94,7 @@ class MainApp(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.device_repository = DeviceRepository()
         self.config_file = get_appdata_path("devices.json")
         icon_path = resource_path("icons", "signal.png")
         self.setWindowIcon(QIcon(icon_path))
@@ -112,19 +118,26 @@ class MainApp(QMainWindow):
         self.stackedWidget = QStackedWidget()
 
         # Tabs
-        self.login_tab = create_login_tab(self)
+        self.login_tab = create_login_tab(
+            self,
+            self.device_repository
+        )
         self.login_tab_index = self.stackedWidget.addWidget(self.login_tab)
         self.sideBar.addItem("Login")
 
-        self.port_status_tab = create_port_status_tab()
+        self.port_status_tab = create_port_status_tab(
+            self.device_repository
+        )
         self.port_status_tab_index = self.stackedWidget.addWidget(self.port_status_tab)
         self.sideBar.addItem("Port Status")
 
-        self.inbox_sms_tab = create_inbox_sms_tab()
+        self.inbox_sms_tab = create_inbox_sms_tab(
+            self.device_repository
+        )
         self.inbox_sms_tab_index = self.stackedWidget.addWidget(self.inbox_sms_tab)
         self.sideBar.addItem("Inbox SMS")
 
-        self.restart_tab = create_restart_tab()
+        self.restart_tab = create_restart_tab(self.device_repository)
         self.restart_tab_index = self.stackedWidget.addWidget(self.restart_tab)
         self.sideBar.addItem("Restart")
 
@@ -476,7 +489,7 @@ class MainApp(QMainWindow):
         self.last_tab_index = new_index
 
     def add_device_row(self, ip="", username="", password=""):
-        row = DeviceRow(self.devices_layout, self)
+        row = DeviceRow(self.devices_layout)
         row.ip_input.setText(str(ip) if ip else "")
         row.username_input.setText(str(username) if username else "")
         row.password_input.setText(str(password) if password else "")
@@ -491,36 +504,30 @@ class MainApp(QMainWindow):
             if isinstance(self.devices_layout.itemAt(i).widget(), DeviceRow)
         ]
 
-    def save_devices_to_file(self):
-        data = []
-        for index, row in enumerate(self.get_device_rows(), start=1):
-            row_data = row.to_dict()
-            row_data["goip"] = f"GOIP {index}"
-            data.append(row_data)
+    def save_devices_to_file(self) -> None:
+        self.devices_layout.save_devices()
+        self.devices_changed.emit()
 
-        with open(self.config_file, "w") as f:
-            json.dump(data, f, indent=4)
-            f.flush()
-            os.fsync(f.fileno())
-            self.devices_changed.emit()
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Saved File")
 
     def load_devices_from_file(self):
         global devices
+
         if os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                try:
-                    devices = json.load(f)
-                    if devices:
-                        for dev in devices:
-                            self.add_device_row(
-                                ip=dev.get("ip", ""),
-                                username=dev.get("username", ""),
-                                password=dev.get("password", "")
-                            )
-                        return
-                except json.JSONDecodeError:
-                    print("Invalid JSON")
+            try:
+                devices = self.device_repository.load_devices()
+
+                if devices:
+                    for dev in devices:
+                        self.add_device_row(
+                            ip=dev.ip_address,
+                            username=dev.username,
+                            password=dev.password
+                        )
+                    return
+
+            except json.JSONDecodeError:
+                print("Invalid JSON")
 
         self.add_device_row()
 

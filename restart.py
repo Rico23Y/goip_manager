@@ -1,20 +1,31 @@
 from utils import *
+from app.models.goip_device import GoipDevice
 
-def launch_restart_tabs(goip_num):
-    devices = reload_devices()
+def launch_restart_tabs(device_repository, goip_num):
+    if goip_num <= 0:
+        return
+
+    devices = device_repository.load_devices()
+
+    if goip_num > len(devices):
+        return
+
     device = devices[goip_num - 1]
-    if goip_num > 0:
-        try:
-            session = login_goip(device)
-            restart_goip(device, session)
 
-        except Exception:
-            pass
+    try:
+        session = login_goip(device)
+        restart_goip(device, session)
 
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] restarted: GOIP {goip_num}")
+    except Exception:
+        pass
 
-def restart_goip(device, session):
-    ip = device["ip"]
+    print(
+        f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+        f"restarted: GOIP {goip_num}"
+    )
+
+def restart_goip(device: GoipDevice, session):
+    ip = device.ip_address
     reboot_url = f"http://{ip}/save_reboot_en.html"
 
     headers = {
@@ -25,19 +36,37 @@ def restart_goip(device, session):
                       "AppleWebKit/537.36 (KHTML, like Gecko) "
                       "Chrome/138.0.0.0 Safari/537.36",
     }
+
     payload = {
         "command": "reboot"
     }
 
     try:
-        resp = session.post(reboot_url, headers=headers, data=payload, timeout=10)
+        resp = session.post(
+            reboot_url,
+            headers=headers,
+            data=payload,
+            timeout=10
+        )
+
         if resp.status_code == 200:
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✔️ {device['goip']} Restart command sent ({device['ip']}).")
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"✔️ {device.goip} Restart command sent ({ip})."
+            )
             return True
-        else:
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ {device['goip']} Restart failed ({device['ip']}) - HTTP {resp.status_code}")
-            return False
+
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"❌ {device.goip} Restart failed ({ip}) - "
+            f"HTTP {resp.status_code}"
+        )
+        return False
+
     except requests.RequestException as e:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ {device['goip']} Restart request error ({device['ip']}): {e}")
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"❌ {device.goip} Restart request error ({ip}): {e}"
+        )
         return False
 

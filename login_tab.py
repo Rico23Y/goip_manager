@@ -7,9 +7,12 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     QRegularExpression, Qt, QTimer, QSize, QPoint, QEasingCurve, QPropertyAnimation,
-    QParallelAnimationGroup, Signal
+    QParallelAnimationGroup
 )
-from utils import launch_home_tabs, reload_devices, resource_path
+from utils import launch_home_tabs, resource_path
+
+from app.models.goip_device import GoipDevice
+from app.repositories.device_repository import DeviceRepository
 
 # Small, consistent button and icon sizes
 _BTN_SIZE = QSize(28, 28)
@@ -25,10 +28,9 @@ class DeviceRow(QWidget):
       - Add / Delete height animations
       - Smooth swap animation (Up/Down) using overlay ghosts
     """
-    def __init__(self, parent_layout, main_window):
+    def __init__(self, parent_layout) -> None:
         super().__init__()
         self.parent_layout = parent_layout
-        self.main_window = main_window
 
         self._has_error = False   # tracks red-border state across updates
         self._swap_anim_group = None
@@ -177,7 +179,7 @@ class DeviceRow(QWidget):
         reply = msg_box.exec()
 
         if reply == QMessageBox.Yes:
-            self.main_window.save_devices_to_file()
+            self.parent_layout.save_devices()
             return True  # continue
         elif reply == QMessageBox.No:
             return True  # continue without saving
@@ -188,7 +190,10 @@ class DeviceRow(QWidget):
         goip_index = self.parent_layout.indexOf(self) + 1  # 1-based index
         if not self.unsaved_message():
             return  # Cancel clicked → stop here
-        launch_home_tabs(goip_index)
+        launch_home_tabs(
+            self.parent_layout.device_repository,
+            goip_index
+        )
 
     # ---------- Styling helpers ----------
     def _apply_style(self):
@@ -425,7 +430,7 @@ class DeviceRow(QWidget):
             # Update labels, buttons, and save
             layout.update_goip_labels()
             layout.update_delete_buttons()
-            layout.main_window.save_devices_to_file()
+            layout.save_devices()
 
             # Clear refs & unlock
             self._swap_anim_group = None
@@ -454,7 +459,7 @@ class DeviceRow(QWidget):
                 self.deleteLater()
                 self.parent_layout.update_goip_labels()
                 self.parent_layout.update_delete_buttons()
-                self.parent_layout.main_window.save_devices_to_file()
+                self.parent_layout.save_devices()
                 return
             self.setMaximumHeight(max(0, curr_h - (i[0] + 1) * delta))
             i[0] += 1
@@ -488,27 +493,57 @@ class DeviceRow(QWidget):
 
 
 class DeviceListLayout(QVBoxLayout):
-    def __init__(self, main_window):
+    def __init__(
+        self,
+        device_repository: DeviceRepository
+    ) -> None:
         super().__init__()
-        self.main_window = main_window
+
+        self.device_repository = device_repository
+
         self.setSpacing(6)
         self.setContentsMargins(8, 8, 8, 8)
         self.animating = False
 
-    def has_unsaved_changes(self):
+    def has_unsaved_changes(self) -> bool:
         current = []
+
         for i in range(self.count()):
             widget = self.itemAt(i).widget()
+
             if isinstance(widget, DeviceRow):
                 current.append(widget.to_dict())
 
-        saved = reload_devices()
-
-        # compare only ip/username/password fields
-        return current != [
-            {k: v for k, v in d.items() if k in ("ip", "username", "password")}
-            for d in saved
+        saved = [
+            {
+                "ip": device.ip_address,
+                "username": device.username,
+                "password": device.password,
+            }
+            for device in self.device_repository.load_devices()
         ]
+
+        return current != saved
+
+    def save_devices(self) -> None:
+        devices = []
+
+        for i in range(self.count()):
+            widget = self.itemAt(i).widget()
+
+            if isinstance(widget, DeviceRow):
+                data = widget.to_dict()
+
+                devices.append(
+                    GoipDevice(
+                        goip=f"GOIP {i + 1}",
+                        ip_address=data["ip"],
+                        username=data["username"],
+                        password=data["password"],
+                    )
+                )
+
+        self.device_repository.save_devices(devices)
 
     def open_all_in_browser(self):
         # ✅ Only check once at the layout level
@@ -548,7 +583,10 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QS
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 
-def create_login_tab(main_window):
+def create_login_tab(
+    main_window,
+    device_repository: DeviceRepository
+):
     # === CONFIG (rounded scrollable container) ===
     SCROLL_BG = "#f2f8ff"     # background color of the scrollable container
     RADIUS    = 12            # corner radius in px
@@ -576,7 +614,9 @@ def create_login_tab(main_window):
     scroll_layout.setContentsMargins(0, 0, 0, 0)
     scroll_layout.setSpacing(0)
 
-    devices_layout = DeviceListLayout(main_window)
+    devices_layout = DeviceListLayout(
+        device_repository
+    )
     main_window.devices_layout = devices_layout  # accessible in MainApp
     scroll_layout.addLayout(devices_layout)
 

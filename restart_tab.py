@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 # Your restart implementation (must exist)
 from restart import launch_restart_tabs
 from utils import get_appdata_path, resource_path
+from app.repositories.device_repository import DeviceRepository
 
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
@@ -96,14 +97,18 @@ def _next_occurrence_search(now, hour, minute, recurrence, selected_days, select
 class RestartWorker(QThread):
     finished = Signal()
 
-    def __init__(self, device_index):
+    def __init__(self, device_repository, device_index):
         super().__init__()
-        self.device_index = device_index  # -1 => all, otherwise 0-based index
+        self.device_repository = device_repository
+        self.device_index = device_index
 
     def run(self):
         try:
             try:
-                launch_restart_tabs(self.device_index + 1)
+                launch_restart_tabs(
+                    self.device_repository,
+                    self.device_index + 1
+                )
             except Exception:
                 pass
         finally:
@@ -175,7 +180,7 @@ class ScheduleBlock(QGroupBox):
         dev_layout.setContentsMargins(0, 0, 0, 0)
 
         for i, d in enumerate(self.devices):
-            cb = QCheckBox(d.get("goip", "Unknown"))
+            cb = QCheckBox(d.goip)
             cb.stateChanged.connect(lambda st, idx=i: self._device_toggled(idx, st))
             self.device_checkboxes.append(cb)
             dev_layout.addWidget(cb)
@@ -829,11 +834,18 @@ class ScheduleBlock(QGroupBox):
 
 
 class RestartTab(QWidget):
-    def __init__(self, devices_file=DEVICES_FILE, settings_file=RESTART_FILE, parent=None):
+    def __init__(
+        self,
+        device_repository: DeviceRepository,
+        settings_file=RESTART_FILE,
+        parent=None
+    ):
         super().__init__(parent)
-        self.devices_file = devices_file
+
+        self.device_repository = device_repository
         self.settings_file = settings_file
-        self.devices = self._load_devices()
+
+        self.devices = self.device_repository.load_devices()
 
         self.scheduler_running = False
         self.scheduler_timer = QTimer(self)
@@ -1151,7 +1163,7 @@ class RestartTab(QWidget):
         dev_layout.setContentsMargins(0, 0, 0, 0)
         self.main_device_checkboxes = []
         for d in self.devices:
-            cb = QCheckBox(d.get("goip", "Unknown"))
+            cb = QCheckBox(d.goip)
             self.main_device_checkboxes.append(cb)
             dev_layout.addWidget(cb)
         devs_scroll.setWidget(dev_container)
@@ -1188,7 +1200,7 @@ class RestartTab(QWidget):
             self.main_device_checkboxes.clear()
 
             for d in self.devices:
-                cb = QCheckBox(d.get("goip", "Unknown"))
+                cb = QCheckBox(d.goip)
                 self.main_device_checkboxes.append(cb)
                 # Find the layout inside the scroll area and add the checkbox
                 scroll_area = self.main_devices_group.findChild(QScrollArea)
@@ -1215,7 +1227,7 @@ class RestartTab(QWidget):
                     if dev_container:
                         dev_layout = dev_container.layout()
                         for idx, d in enumerate(self.devices):
-                            cb = QCheckBox(d.get("goip", "Unknown"))
+                            cb = QCheckBox(d.goip)
                             cb.stateChanged.connect(lambda st, i=idx: block._device_toggled(i, st))
                             block.device_checkboxes.append(cb)
                             dev_layout.addWidget(cb)
@@ -1285,7 +1297,7 @@ class RestartTab(QWidget):
             return
 
         for n in device_indices:
-            w = RestartWorker(n - 1)
+            w = RestartWorker(self.device_repository, n - 1)
             w.finished.connect(self._create_finished_slot(w))
             self.active_workers.append(w)
             w.start()
@@ -1435,7 +1447,7 @@ class RestartTab(QWidget):
 
             device_indices = [i for i, cb in enumerate(block.device_checkboxes) if cb.isChecked()]
             for di in device_indices:
-                w = RestartWorker(di)
+                w = RestartWorker(self.device_repository, di)
                 w.finished.connect(self._create_finished_slot(w))
                 self.active_workers.append(w)
                 w.start()
@@ -1582,6 +1594,6 @@ class RestartTab(QWidget):
 
 
 # factory
-def create_restart_tab():
-    return RestartTab()
+def create_restart_tab(device_repository: DeviceRepository):
+    return RestartTab(device_repository)
 

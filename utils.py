@@ -17,6 +17,8 @@ import requests, re, hashlib, time
 from PySide6.QtCore import QObject, Signal
 from ping3 import ping
 
+from app.models.goip_device import GoipDevice
+
 def get_appdata_path(filename):
     appdata = os.getenv("APPDATA", os.path.expanduser("~"))
     base_dir = os.path.join(appdata, "GoIP.Manager")
@@ -35,7 +37,7 @@ def resource_path(*relative_path: str) -> str:
     return os.path.join(base_path, *relative_path)
 
 class GoipSignals(QObject):
-    wrongPassword = Signal(dict)  # emits the device info when login fails
+    wrongPassword = Signal(object)  # emits the device info when login fails
 
 signals = GoipSignals()
 
@@ -54,7 +56,7 @@ __all__ = [
 
     # Functions
     'viewer_options', 'open_viewer_tabs', 'is_port_open',
-    'login_to_device', 'login_goip', 'reload_devices',
+    'login_to_device', 'login_goip',
 
     # Constants / Mappings
     'status_map', 'PAGE_LOAD_TIMEOUT', 'ELEMENT_WAIT_TIME',
@@ -70,15 +72,6 @@ KEEPALIVE_INTERVAL = 2  # 2
 NETWORK_LABEL = ["NA", "", "2G", "3G", "4G", "5G"]
 
 CONFIG_FILE = get_appdata_path("devices.json")
-def reload_devices():
-    try:
-        with open(CONFIG_FILE, "r") as f:
-            devices = json.load(f)
-    except FileNotFoundError:
-        devices = []
-        print(f"❌ {CONFIG_FILE} not found. Please ensure it is in the same directory or set the full path.")
-    return devices
-
 
 # Status mapping
 status_map = {
@@ -187,26 +180,33 @@ def is_port_open(ip):
     return False
 
 
-def login_to_device(destination_page, message_type, driver, device, post_login_action=None, parent=None):
-    if not is_port_open(device["ip"]):
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🚫 {device['goip']} ({device['ip']}) is offline — skipping.")
+def login_to_device(
+    destination_page,
+    message_type,
+    driver,
+    device: GoipDevice,
+    post_login_action=None,
+    parent=None
+) -> bool:
 
-        ip_sms = f" ({device['ip']})" if device['ip'] != "" else ""
-        offline_sms = 'offline' if device['ip'] != "" else 'Empty IP address'
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🚫 {device['goip']}{ip_sms} is {offline_sms} — skipping.")
+    if not is_port_open(device.ip_address):
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"🚫 {device.goip} ({device.ip_address}) is offline — skipping."
+        )
         return False
 
     wait = WebDriverWait(driver, ELEMENT_WAIT_TIME)
 
     try:
         # 1️⃣ Open login page
-        driver.get(f"http://{device['ip']}")
+        driver.get(f"http://{device.ip_address}")
         wait.until(EC.presence_of_element_located((By.ID, "ID_LoginForm")))
 
         # 2️⃣ Fill login form via JS
         driver.execute_script(f"""
-            document.getElementById("accountID").value = {json.dumps(device["username"])};
-            document.getElementById("passwordID").value = {json.dumps(device["password"])};
+            document.getElementById("accountID").value = {json.dumps(device.username)};
+            document.getElementById("passwordID").value = {json.dumps(device.password)};
             submitData();
         """)
 
@@ -215,24 +215,36 @@ def login_to_device(destination_page, message_type, driver, device, post_login_a
             result, alert_text = wait_for_login_or_alert(driver, timeout=5)
 
             if result == "alert":
-                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ⚠️ Alert detected: {alert_text}")
+                print(
+                    f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                    f"⚠️ Alert detected: {alert_text}"
+                )
                 driver.switch_to.alert.dismiss()
+
                 show_login_error_popup(
-                    f"[{device['ip']}] {alert_text}\n\n⚠️ Multiple failed attempts may result in device lockdown.\n\n"
+                    f"[{device.ip_address}] {alert_text}\n\n"
+                    f"⚠️ Multiple failed attempts may result in device lockdown.\n\n"
                     f"Please log in manually in the browser to confirm the password.",
                     parent
                 )
                 return False
 
             elif result == "url":
-                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✔️ {device['goip']} Login successful ({device['ip']})")
+                print(
+                    f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                    f"✔️ {device.goip} Login successful ({device.ip_address})"
+                )
 
         except TimeoutException:
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ⏳ {device['goip']} Timeout waiting for login or alert ({device['ip']})")
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"⏳ {device.goip} Timeout waiting for login or alert "
+                f"({device.ip_address})"
+            )
             return False
 
         # 4️⃣ Proceed to target page
-        driver.get(f"http://{device['ip']}/{destination_page}")
+        driver.get(f"http://{device.ip_address}/{destination_page}")
 
         # Optional post-login action
         if post_login_action:
@@ -240,7 +252,7 @@ def login_to_device(destination_page, message_type, driver, device, post_login_a
 
         # 5️⃣ Inject keep-alive script
         driver.execute_script(f"""
-            document.title = '{device["goip"]}';
+            document.title = '{device.goip}';
             if (!window.keepAliveInterval) {{
                 window.keepAliveInterval = setInterval(function() {{
                     fetch('/left_bar.gif')
@@ -250,15 +262,27 @@ def login_to_device(destination_page, message_type, driver, device, post_login_a
             }}
         """)
 
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✔️ {device['goip']} {message_type} Successfully ({device['ip']})")
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"✔️ {device.goip} {message_type} Successfully "
+            f"({device.ip_address})"
+        )
         return True
 
     except TimeoutException:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ⏳ {device['goip']} Timeout loading ({device['ip']})")
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"⏳ {device.goip} Timeout loading "
+            f"({device.ip_address})"
+        )
         return False
 
     except Exception as e:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ {device['goip']} Unexpected error at ({device['ip']}): {e}")
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"❌ {device.goip} Unexpected error at "
+            f"({device.ip_address}): {e}"
+        )
         return False
 
 
@@ -336,14 +360,14 @@ def parse_login_status(html: str):
 
     return status, remaining
 
-def login_goip(device):
+def login_goip(device: GoipDevice):
     """
     Attempts login and returns session or None.
     On wrong password: emits signals.wrongPassword and returns None.
     """
-    ip = device["ip"]
-    user = device["username"]
-    pwd = device["password"]
+    ip = device.ip_address
+    user = device.username
+    pwd = device.password
     base = f"http://{ip}"
 
     s = requests.Session()
@@ -375,7 +399,7 @@ def login_goip(device):
     status, remaining = parse_login_status(html)
 
     if status == "0":
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✅ GOIP {device.get('goip','?')} ({ip}) Login successful.")
+        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✅ GOIP {device.goip} ({ip}) Login successful.")
         return s
 
     # Wrong credentials detection
@@ -392,53 +416,82 @@ def login_goip(device):
     return None
 
 
-def open_viewer_tabs(destination_page, message_type, viewer_driver, post_login_action=None):
-    devices = reload_devices()
+def open_viewer_tabs(
+    destination_page,
+    message_type,
+    viewer_driver,
+    device_repository,
+    post_login_action=None
+):
+    devices = device_repository.load_devices()
+
     for device in devices:
         try:
-            # Always open new tab
-            viewer_driver.execute_script("window.open('about:blank', '_blank');")
-            viewer_driver.switch_to.window(viewer_driver.window_handles[-1])
+            viewer_driver.execute_script(
+                "window.open('about:blank', '_blank');"
+            )
+            viewer_driver.switch_to.window(
+                viewer_driver.window_handles[-1]
+            )
             time.sleep(0.1)
 
-            # Let login_to_device decide if it should skip
-            success = login_to_device(destination_page, message_type, viewer_driver, device, post_login_action=post_login_action)
-            if not success:
-                viewer_driver.close()  # optional: close tab if login failed
-                viewer_driver.switch_to.window(viewer_driver.window_handles[0])
-        except Exception as e:
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ {device['goip']} Error with ({device['ip']}): {e}")
+            success = login_to_device(
+                destination_page,
+                message_type,
+                viewer_driver,
+                device,
+                post_login_action=post_login_action
+            )
 
-def launch_home_tabs(goip_window=0):
+            if not success:
+                viewer_driver.close()
+                viewer_driver.switch_to.window(
+                    viewer_driver.window_handles[0]
+                )
+
+        except Exception as e:
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"❌ {device.goip} Error with ({device.ip_address}): {e}"
+            )
+
+def launch_home_tabs(device_repository, goip_window=0):
     """
     Optional function to open viewer-only tabs (non-scraping UI).
-    Can run multiple or single window
+    Can run multiple or single window.
     """
-    devices = reload_devices()
+    devices = device_repository.load_devices()
     viewer_driver, viewer_main_window = viewer_options()
 
     if goip_window == 0:
         try:
-            open_viewer_tabs("main_en.html", "Port Status Opened",
-                             viewer_driver)
+            open_viewer_tabs(
+                "main_en.html",
+                "Home Page Opened",
+                viewer_driver,
+                device_repository
+            )
 
             viewer_driver.switch_to.window(viewer_main_window)
             viewer_driver.close()
-        except Exception:
-            pass
 
-    if goip_window > 0:
+        except Exception as e:
+            print(f"Error opening home tabs: {e}")
+
+    elif goip_window > 0:
         try:
+            success = login_to_device(
+                "main_en.html",
+                "Home Page Opened",
+                viewer_driver,
+                devices[goip_window - 1]
+            )
 
-            success = login_to_device("main_en.html", "Home Page Opened",
-                            viewer_driver, devices[goip_window - 1])
             if not success:
-                viewer_driver.close()  # optional: close tab if login failed
-                viewer_driver.switch_to.window(viewer_driver.window_handles[0])
+                return
 
-        except Exception:
-            pass
-
+        except Exception as e:
+            print(f"Error opening home page: {e}")
 
 
 
