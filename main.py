@@ -1,20 +1,26 @@
-import edge_driver_updater, sys, json, os, time, atexit, ctypes
+
+import atexit
+import ctypes
+import sys
+import time
+
+import edge_driver_updater
+
 from PySide6.QtCore import Signal, Qt, QUrl
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout,
     QListWidget, QStackedWidget, QMessageBox, QStyleFactory
 )
 from PySide6.QtGui import QIcon, QPalette, QColor
-from utils import signals, get_appdata_path, resource_path
+from utils import signals, resource_path
 from login_tab import create_login_tab, DeviceRow
 from port_status_tab import create_port_status_tab
 from inbox_sms_tab import create_inbox_sms_tab
 from restart_tab import create_restart_tab
 from console_tab import create_console_tab, DualOutput
 
-
 from app.repositories.device_repository import DeviceRepository
-from app.models.goip_device import GoipDevice
+
 
 
 app_version = '1.3.2'
@@ -95,7 +101,6 @@ class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.device_repository = DeviceRepository()
-        self.config_file = get_appdata_path("devices.json")
         icon_path = resource_path("icons", "signal.png")
         self.setWindowIcon(QIcon(icon_path))
         self.setWindowTitle(f"GOIP Monitor App {app_version}v")
@@ -513,26 +518,21 @@ class MainApp(QMainWindow):
 
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Saved File")
 
-    def load_devices_from_file(self):
-        global devices
 
-        if os.path.exists(self.config_file):
-            try:
-                devices = self.device_repository.load_devices()
+    def load_devices_from_file(self) -> None:
+        """Load device configurations into the login tab."""
+        devices = self.device_repository.load_devices()
 
-                if devices:
-                    for dev in devices:
-                        self.add_device_row(
-                            ip=dev.ip_address,
-                            username=dev.username,
-                            password=dev.password
-                        )
-                    return
+        for device in devices:
+            self.add_device_row(
+                ip=device.ip_address,
+                username=device.username,
+                password=device.password,
+            )
 
-            except json.JSONDecodeError:
-                print("Invalid JSON")
+        if not devices:
+            self.add_device_row()
 
-        self.add_device_row()
 
 
 if __name__ == "__main__":
