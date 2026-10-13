@@ -116,8 +116,9 @@ class InboxSMSTab(QWidget):
         self.last_status_cache.clear()
 
         for idx, dev in enumerate(devices, start=1):
-            goip_label = dev.goip or f"GOIP {idx}"
+            goip_label = f"GOIP {idx}"
             ip = dev.ip_address
+
 
             # Placeholder labels
             frame = QFrame()
