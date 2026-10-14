@@ -6,26 +6,26 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.edge.service import Service
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
-import os, time, json, csv, sys, re, math, subprocess, threading, requests, hashlib, operator, platform
+import os, time, json, csv, sys, re, math, subprocess, threading, requests, operator, platform
 from subprocess import DEVNULL
 from selenium import webdriver
 from plyer import notification
 from PySide6.QtCore import Qt, QTimer, QUrl
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtGui import QIcon
-import requests, re, hashlib, time
-from PySide6.QtCore import QObject, Signal
+import requests, re, time
 
 from app.models.goip_device import GoipDevice
 from app.core.config import get_appdata_path
 from app.utils.paths import resource_path
 from app.goip.connection import is_port_online, ping_ip, is_port_open
-
-class GoipSignals(QObject):
-    wrongPassword = Signal(object)  # emits the device info when login fails
-
-signals = GoipSignals()
-
+from app.goip.client import (
+    md5_hex,
+    get_auth_cookie_value,
+    parse_login_status,
+    login_goip,
+)
+from app.core.signals import GoipSignals, signals
 
 __all__ = [
     # Selenium
@@ -283,81 +283,6 @@ def show_login_error_popup(message, parent=None):
         msg.exec()
 
     QTimer.singleShot(0, _show)
-
-def md5_hex(s: str) -> str:
-    return hashlib.md5(s.encode("utf-8")).hexdigest()
-
-def get_auth_cookie_value(session: requests.Session):
-    for c in session.cookies:
-        if c.name.startswith("auth_"):
-            return c.value
-    return None
-
-def parse_login_status(html: str):
-    """Returns (status, remaining)"""
-    m = re.search(r'id=["\']ID_LoginStatus["\'][^>]*value=["\']([^"\']+)["\']', html, re.I)
-    status = m.group(1) if m else None
-
-    r = re.search(r'login_remaining_count\s*=\s*["\']?(-?\d+)["\']?', html, re.I)
-    remaining = int(r.group(1)) if r else None
-
-    return status, remaining
-
-def login_goip(device: GoipDevice):
-    """
-    Attempts login and returns session or None.
-    On wrong password: emits signals.wrongPassword and returns None.
-    """
-    ip = device.ip_address
-    user = device.username
-    pwd = device.password
-    base = f"http://{ip}"
-
-    s = requests.Session()
-    s.headers.update({"User-Agent": "Mozilla/5.0"})
-
-    try:
-        s.get(f"{base}/login_en.html", timeout=5)
-    except requests.RequestException as e:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [{ip}] 🚫 Cannot reach device: {e}")
-        return None
-
-    nonce = get_auth_cookie_value(s)
-    if not nonce:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [{ip}] ⚠️ No auth_* cookie found.")
-        return None
-
-    digest = md5_hex(f"{user}:{pwd}:{nonce}")
-    encoded = f"{user}:{digest}"
-    payload = {"encoded": encoded, "nonce": nonce}
-    headers = {"Origin": base, "Referer": f"{base}/login_en.html"}
-
-    try:
-        r2 = s.post(f"{base}/login_en.html", data=payload, headers=headers, timeout=5)
-        html = r2.text or ""
-    except requests.RequestException as e:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [{ip}] 🚫 POST failed: {e}")
-        return None
-
-    status, remaining = parse_login_status(html)
-
-    if status == "0":
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✅ GOIP {device.goip} ({ip}) Login successful.")
-        return s
-
-    # Wrong credentials detection
-    text_lower = html.lower()
-    if ("account or password is wrong" in text_lower) or (remaining is not None and remaining >= 0) or "login" in r2.url.lower():
-        msg = f"Wrong credentials for {ip}"
-        if remaining is not None:
-            msg += f" (remaining attempts {remaining})"
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ❌ {msg}")
-        signals.wrongPassword.emit(device)
-        return None
-
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [{ip}] ⚠️ Ambiguous login response")
-    return None
-
 
 def open_viewer_tabs(
     destination_page,
