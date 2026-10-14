@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.edge.service import Service
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
-import os, time, json, csv, sys, re, math, socket, subprocess, threading, requests, hashlib, operator, platform
+import os, time, json, csv, sys, re, math, subprocess, threading, requests, hashlib, operator, platform
 from subprocess import DEVNULL
 from selenium import webdriver
 from plyer import notification
@@ -15,26 +15,11 @@ from PySide6.QtWidgets import QMessageBox
 from PySide6.QtGui import QIcon
 import requests, re, hashlib, time
 from PySide6.QtCore import QObject, Signal
-from ping3 import ping
 
 from app.models.goip_device import GoipDevice
-
-def get_appdata_path(filename):
-    appdata = os.getenv("APPDATA", os.path.expanduser("~"))
-    base_dir = os.path.join(appdata, "GoIP.Manager")
-    os.makedirs(base_dir, exist_ok=True)
-    return os.path.join(base_dir, filename)
-
-def resource_path(*relative_path: str) -> str:
-    """
-    Get absolute path to resource.
-    Works for dev (PyCharm) and for PyInstaller frozen exe.
-    """
-    if getattr(sys, 'frozen', False):  # running as .exe
-        base_path = sys._MEIPASS
-    else:  # running in PyCharm / Python
-        base_path = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(base_path, *relative_path)
+from app.core.config import get_appdata_path
+from app.utils.paths import resource_path
+from app.goip.connection import is_port_online, ping_ip, is_port_open
 
 class GoipSignals(QObject):
     wrongPassword = Signal(object)  # emits the device info when login fails
@@ -50,7 +35,7 @@ __all__ = [
     'WebDriverException', 'StaleElementReferenceException',
 
     # Standard libraries
-    'operator', 'notification', 'DEVNULL', 'socket',
+    'operator', 'notification', 'DEVNULL',
     'math', 'time', 'csv', 'sys', 'os', 're', 'threading',
     'requests',
 
@@ -137,46 +122,6 @@ def viewer_options(windows_size = "--window-size=1500,1100", headless = False):
     driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
     driver.get("about:blank")
     return driver, driver.current_window_handle
-
-# Example
-# viewer_driver, viewer_main_window = viewer_options()
-
-import socket
-from ping3 import ping
-
-def is_port_online(ip, port, timeout=2):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(timeout)
-    try:
-        s.connect((ip, port))
-        s.close()
-        return True
-    except:
-        return False
-
-def ping_ip(ip, timeout=2):
-    """Pings an IP using native Python. Returns True if responsive."""
-    try:
-        # ping3 takes timeout in seconds. Returns delay in seconds or None/False.
-        response = ping(ip, timeout=timeout)
-        return response is not None and response is not False
-    except Exception:
-        return False
-
-def is_port_open(ip):
-    if not ip:
-        return False
-        
-    # Reordered logic: Try fast socket checks first, fallback to ping last
-    if is_port_online(ip, 5060):
-        return True
-    if is_port_online(ip, 80):
-        return True
-    if ping_ip(ip):
-        return True
-        
-    return False
-
 
 def login_to_device(
     destination_page,
