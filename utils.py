@@ -71,8 +71,6 @@ KEEPALIVE_INTERVAL = 2  # 2
 
 NETWORK_LABEL = ["NA", "", "2G", "3G", "4G", "5G"]
 
-CONFIG_FILE = get_appdata_path("devices.json")
-
 # Status mapping
 status_map = {
     0: "No Card Detected",
