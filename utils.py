@@ -26,6 +26,7 @@ from app.goip.client import (
     login_goip,
 )
 from app.core.signals import GoipSignals, signals
+from app.ui.login_dialogs import show_login_error_popup
 
 __all__ = [
     # Selenium
@@ -254,35 +255,6 @@ def wait_for_login_or_alert(driver, timeout=5):
             raise TimeoutException("Neither login nor alert detected")
 
         time.sleep(0.1)  # small poll interval
-
-def show_login_error_popup(message, parent=None):
-    def _show():
-        # 🔔 System tray notification
-        notification.notify(
-            title="GOIP Login Error",
-            message=message,
-            app_icon=resource_path("icons", "notification.ico") if os.path.exists(
-                resource_path("icons", "notification.ico")) else None,
-            timeout=5
-        )
-
-        # ⚠️ GUI popup with custom icon
-        msg = QMessageBox(parent)
-        msg.setWindowTitle("GOIP Login Error")
-
-        # set both window icon (title bar) and content icon
-        icon_path = resource_path("icons", "notification.png")
-        if os.path.exists(icon_path):
-            msg.setWindowIcon(QIcon(icon_path))  # 👈 title bar icon
-            msg.setIconPixmap(QIcon(icon_path).pixmap(48, 48))  # 👈 content icon
-
-        msg.setText(message)
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.setDefaultButton(QMessageBox.Ok)
-        msg.setWindowFlags(msg.windowFlags() | Qt.WindowStaysOnTopHint)
-        msg.exec()
-
-    QTimer.singleShot(0, _show)
 
 def open_viewer_tabs(
     destination_page,
