@@ -16,7 +16,7 @@ from utils import signals, resource_path
 from login_tab import create_login_tab, DeviceRow
 from port_status_tab import create_port_status_tab
 from inbox_sms_tab import create_inbox_sms_tab
-from restart_tab import create_restart_tab
+from app.ui.tabs.restart_tab import create_restart_tab
 from app.ui.tabs.console_tab import create_console_tab, DualOutput
 
 from app.repositories.device_repository import DeviceRepository
