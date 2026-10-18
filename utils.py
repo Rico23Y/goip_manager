@@ -37,6 +37,11 @@ from app.goip.browser import (
     ELEMENT_WAIT_TIME,
     KEEPALIVE_INTERVAL,
 )
+from app.core.goip_status import (
+    NETWORK_LABEL,
+    status_map,
+    signal_to_level,
+)
 
 __all__ = [
     # Selenium
@@ -59,51 +64,3 @@ __all__ = [
     'KEEPALIVE_INTERVAL', 'signal_to_level',
     'NETWORK_LABEL'
 ]
-
-# --- Config ---        # Previous value
-PAGE_LOAD_TIMEOUT = 30  # 5
-ELEMENT_WAIT_TIME = 30  # 0.6
-KEEPALIVE_INTERVAL = 2  # 2
-
-NETWORK_LABEL = ["NA", "", "2G", "3G", "4G", "5G"]
-
-# Status mapping
-status_map = {
-    0: "No Card Detected",
-    1: "Card Detected",
-    2: "Registering Card",
-    3: "Register OK",
-    4: "Calling",
-    5: "No Balance",
-    6: "Register Failed",
-    7: "Locked",
-    8: "Locked By Operator",
-    9: "SIM Problem",
-    10: "Locked",
-    11: "Card Inserted",
-    12: "Locked By User",
-    13: "Inter-Calling",
-    14: "Inter-Calling Holding",
-    15: "Access Mobile Network",
-    16: "Response Timeout",
-    99: "Module Problem"
-}
-
-# For signal bar conversion
-def signal_to_level(signal_str):
-    if signal_str != '':
-        signal = int(signal_str)
-        if signal <= 4 or signal > 31:
-            return 0
-        elif signal <= 8:
-            return 1
-        elif signal <= 13:
-            return 2
-        elif signal <= 18:
-            return 3
-        elif signal <= 24:
-            return 4
-        else:
-            return 5
-    else:
-        return -1
