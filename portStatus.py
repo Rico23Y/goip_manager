@@ -1,12 +1,19 @@
-import json, threading
+import threading
 from utils import *
 import copy
 from collections import defaultdict
 from utils import get_appdata_path, resource_path
 from app.models.goip_device import GoipDevice
 from app.repositories.device_repository import DeviceRepository
+from app.repositories.notification_settings_repository import (
+    NotificationSettingsRepository,
+)
 
 NOTIFICATION_FILE = get_appdata_path("notification_setting.json")
+
+notification_settings_repository = NotificationSettingsRepository(
+    NOTIFICATION_FILE
+)
 
 pause_event = threading.Event()
 pause_remaining = 0  # seconds left to resume
@@ -385,12 +392,20 @@ def check_for_notifications(goip: str, data: list):
 
 def load_notification_settings():
     global _notification_settings
+
     try:
-        with open(NOTIFICATION_FILE, "r") as f:
-            _notification_settings = json.load(f)
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Notification settings reloaded.")
+        _notification_settings = (
+            notification_settings_repository.load_settings()
+        )
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            "[INFO] Notification settings reloaded."
+        )
     except Exception as e:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [ERROR] Failed to load notification settings: {e}")
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"[ERROR] Failed to load notification settings: {e}"
+        )
         _notification_settings = {}
 
 def update_notification_settings_from_ui():
