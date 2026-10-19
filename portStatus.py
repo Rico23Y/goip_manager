@@ -206,8 +206,8 @@ def start_goip_monitoring(
 ):
     global _RUNNING
 
-    with _INIT_LOCK:
-        if will_run:
+    if will_run:
+        with _INIT_LOCK:
             if _RUNNING:
                 return
 
@@ -250,6 +250,44 @@ def start_goip_monitoring(
                 f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
                 f"[INFO] GoIP monitoring started."
             )
+        return
+
+    # Request all active scraper threads to stop.
+    with _INIT_LOCK:
+        threads = list(_monitor_threads.values())
+
+        for stop_event in _stop_events.values():
+            stop_event.set()
+
+    # Wait outside the lock, with a shared 5-second deadline.
+    # This prevents the wait from reaching 5 seconds per device.
+    deadline = time.monotonic() + 5
+
+    for thread in threads:
+        if thread is not threading.current_thread():
+            remaining = max(0, deadline - time.monotonic())
+            thread.join(timeout=remaining)
+
+    with _INIT_LOCK:
+        still_running = [
+            thread.name
+            for thread in _monitor_threads.values()
+            if thread.is_alive()
+        ]
+
+        _RUNNING = bool(still_running)
+
+    if still_running:
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"[WARNING] Some GOIP monitoring threads are still stopping: "
+            f"{', '.join(still_running)}"
+        )
+    else:
+        print(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"[INFO] GoIP monitoring stopped."
+        )
 
 def get_goip_status_data(device_repository: DeviceRepository) -> dict:
     devices = device_repository.load_devices()
