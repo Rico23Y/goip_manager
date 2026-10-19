@@ -9,13 +9,18 @@ from PySide6.QtCore import Qt, QTimer, QObject, Signal, QThread, QObject, Signal
 from portStatus import start_goip_monitoring, get_goip_status_data, launch_view_tabs, update_notification_settings_from_ui
 from utils import status_map, is_port_open, signal_to_level, NETWORK_LABEL, get_appdata_path, \
     resource_path
-import json
 import os
 from app.repositories.device_repository import DeviceRepository
+from app.repositories.notification_settings_repository import (
+    NotificationSettingsRepository,
+)
 
 #from test_00 import get_goip_status_fake_data # testing data
 
 NOTIFICATION_FILE = get_appdata_path("notification_setting.json")
+notification_settings_repository = NotificationSettingsRepository(
+    NOTIFICATION_FILE
+)
 _ICON_SIZE = QSize(18, 18)
 
 # --- Worker signals ---
@@ -673,13 +678,7 @@ class NotificationSettingsDialog(QDialog):
         self.move(x, y)
 
     def load_settings(self):
-        if os.path.exists(NOTIFICATION_FILE):
-            with open(NOTIFICATION_FILE, "r") as f:
-                try:
-                    return json.load(f)
-                except json.JSONDecodeError:
-                    pass
-        return {}
+        return notification_settings_repository.load_settings()
 
     def build_sim_status_section(self):
         self.sim_group = QGroupBox("SIM Status Notification")
@@ -916,8 +915,7 @@ class NotificationSettingsDialog(QDialog):
             }
         }
 
-        with open(NOTIFICATION_FILE, "w") as f:
-            json.dump(new_settings, f, indent=4)
+        notification_settings_repository.save_settings(new_settings)
 
         update_notification_settings_from_ui()
         self.accept()
