@@ -394,7 +394,11 @@ class MainApp(QMainWindow):
             .replace("__DOWN__", down_arrow)
         )
 
+
     def closeEvent(self, event):
+        # Stop Port Status timers and background workers
+        self.port_status_tab.shutdown()
+
         # Stop Inbox SMS background workers/timer
         self.inbox_sms_tab.stop_updates()
 

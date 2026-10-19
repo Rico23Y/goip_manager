@@ -107,6 +107,7 @@ class PortStatusTab(QWidget):
         self.goip_layouts = {}
         self.goip_frame_cache = {}
         self.monitor_running = False
+        self.shutting_down = False
 
         # Cache for static view comparison
         self.last_static_status = {}  # goip_label -> (ip, online)
@@ -231,6 +232,8 @@ class PortStatusTab(QWidget):
         self.show_goip_ip_status()
 
     def show_goip_ip_status(self):
+        if self.shutting_down:
+            return
         # Clear layout
         while self.scroll_layout.count():
             item = self.scroll_layout.takeAt(0)
@@ -330,6 +333,17 @@ class PortStatusTab(QWidget):
             block = self.build_goip_block(goip_label, ports_data)
             self.scroll_layout.addWidget(block)
 
+    def shutdown(self):
+        """Stop Port Status updates and prevent new background tasks."""
+        self.shutting_down = True
+
+        self.static_timer.stop()
+        self.timer.stop()
+
+        if hasattr(self, "threadpool"):
+            self.threadpool.clear()
+            self.threadpool.waitForDone(3000)
+
     def toggle_monitoring(self):
         if self.monitor_running:
             self.stop_monitoring()
@@ -398,6 +412,8 @@ class PortStatusTab(QWidget):
         self.static_timer.start(2000)
 
     def update_static_view(self):
+        if self.shutting_down:
+            return
         if self.monitor_running:
             return
 
