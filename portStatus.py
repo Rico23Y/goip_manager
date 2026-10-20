@@ -1,7 +1,6 @@
 import threading
 from utils import *
 import copy
-from collections import defaultdict
 from utils import get_appdata_path, resource_path
 from app.models.goip_device import GoipDevice
 from app.repositories.device_repository import DeviceRepository
