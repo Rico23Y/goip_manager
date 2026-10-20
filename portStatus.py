@@ -34,8 +34,6 @@ RETRY_DELAYS = [60, 240, 600]  # 1 min, 4 mins, 10 mins
 # For retries attempt label mapping
 attempt_minutes = ['', ': 2 minutes left', ': 5 minutes left (last try)']
 
-_notification_settings = {}
-
 # ------------------------- internal helpers -------------------------
 # Get the correct base path (works both in Python and frozen exe)
 if getattr(sys, 'frozen', False):  # Running as EXE
@@ -328,13 +326,9 @@ def check_for_notifications(goip: str, data: list):
 
 
 def load_notification_settings():
-    global _notification_settings
-
     try:
-        _notification_settings = (
-            notification_settings_repository.load_settings()
-        )
-        notification_service.update_settings(_notification_settings)
+        settings = notification_settings_repository.load_settings()
+        notification_service.update_settings(settings)
 
         print(
             f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
@@ -345,8 +339,8 @@ def load_notification_settings():
             f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
             f"[ERROR] Failed to load notification settings: {e}"
         )
-        _notification_settings = {}
         notification_service.update_settings({})
+
 
 def update_notification_settings_from_ui():
     # Call this after saving settings in the UI
