@@ -101,5 +101,65 @@ class TestStopGoipMonitoring(unittest.TestCase):
         )
 
 
+class TestMonitorScraperSessionCleanup(unittest.TestCase):
+    @patch("portStatus.time.sleep")
+    @patch("portStatus.time.strftime", return_value="test-time")
+    @patch("portStatus._update_state")
+    @patch("portStatus.is_port_open", return_value=True)
+    @patch("portStatus.scrape_goip_data", side_effect=Exception("scrape failed"))
+    @patch("portStatus.login_goip")
+    def test_closes_session_after_scrape_failure(
+        self,
+        login_goip,
+        scrape_goip_data,
+        is_port_open,
+        update_state,
+        strftime,
+        sleep,
+    ):
+        device = portStatus.GoipDevice(
+            goip="1",
+            ip_address="192.168.0.101",
+            username="admin",
+            password="test-password",
+        )
+        session = MagicMock()
+        login_goip.return_value = session
+        stop_event = MagicMock()
+        stop_event.is_set.side_effect = [False, False, True]
+        stop_event.wait.return_value = False
+
+        portStatus.monitor_scraper_loop(device, stop_event)
+
+        session.close.assert_called_once_with()
+
+    @patch("portStatus._update_state")
+    @patch("portStatus.is_port_open", return_value=True)
+    @patch("portStatus.scrape_goip_data", return_value={"status": "ok"})
+    @patch("portStatus.login_goip")
+    def test_closes_session_when_monitoring_stops(
+        self,
+        login_goip,
+        scrape_goip_data,
+        is_port_open,
+        update_state,
+    ):
+        device = portStatus.GoipDevice(
+            goip="1",
+            ip_address="192.168.0.101",
+            username="admin",
+            password="test-password",
+        )
+        session = MagicMock()
+        login_goip.return_value = session
+        stop_event = MagicMock()
+        stop_event.is_set.return_value = False
+        stop_event.wait.return_value = True
+
+        portStatus.monitor_scraper_loop(device, stop_event)
+
+        session.close.assert_called_once_with()
+
+
 if __name__ == "__main__":
     unittest.main()

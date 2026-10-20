@@ -136,68 +136,80 @@ def monitor_scraper_loop(
     session = None
     is_online = True
 
-    while not stop_event.is_set():
-        try:
-            if session is None:
-                if not is_port_open(ip):
-                    _update_state(goip, is_running=False, description="Offline")
-
-                    if is_online:
-                        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}]Is ONLINE")
-                        ip_sms = f" ({ip})" if ip != "" else ""
-                        offline_sms = 'offline' if ip != "" else 'Empty IP address'
-                        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🚫 {goip}{ip_sms} is {offline_sms} — skipping.")
-
-                    is_online = False
-                    # Small wait to avoid busy-loop if port remains closed
-                    if stop_event.wait(10):
-                        return
-                    continue
-
-                is_online = True
-                session = login_goip(device)
+    try:
+        while not stop_event.is_set():
+            try:
                 if session is None:
-                    _update_state(goip, is_running=False, description="Initial login failed")
-                    raise Exception("Initial login failed")
+                    if not is_port_open(ip):
+                        _update_state(goip, is_running=False, description="Offline")
 
-            data = scrape_goip_data(device, session)
+                        if is_online:
+                            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}]Is ONLINE")
+                            ip_sms = f" ({ip})" if ip != "" else ""
+                            offline_sms = 'offline' if ip != "" else 'Empty IP address'
+                            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🚫 {goip}{ip_sms} is {offline_sms} — skipping.")
 
-            if data is None:
+                        is_online = False
+                        # Small wait to avoid busy-loop if port remains closed
+                        if stop_event.wait(10):
+                            return
+                        continue
 
-                raise Exception("scrape_goip_data() returned None")
+                    is_online = True
+                    session = login_goip(device)
+                    if session is None:
+                        _update_state(goip, is_running=False, description="Initial login failed")
+                        raise Exception("Initial login failed")
 
-            # ✅ Success: reset attempts and update state
-            check_for_notifications(goip, data)
-            _update_state(goip, status=data, is_running=True, description="Running")
-            attempt = 0
+                data = scrape_goip_data(device, session)
 
-            # Wait 1 sec before next scrape, but cancel instantly if stopped
-            if stop_event.wait(1):
-                return
+                if data is None:
 
-        except Exception as e:
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ({ip}) Error: {e}")
-            attempt += 1
-            session = None  # Force re-login next loop
+                    raise Exception("scrape_goip_data() returned None")
 
-            if attempt >= max_attempts:
-                failed_msg = f"({ip}) ❌ Marked as failed after {attempt} attempts."
-                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {failed_msg}")
-                _update_state(goip, is_running=False, description=failed_msg)
-                return
+                # ✅ Success: reset attempts and update state
+                check_for_notifications(goip, data)
+                _update_state(goip, status=data, is_running=True, description="Running")
+                attempt = 0
 
-            delay = retry_delays[min(attempt - 1, max_attempts - 1)]
-            message = f"({ip}) Retrying in {delay} sec... (Attempt {attempt}/{max_attempts})"
-            _update_state(goip, is_running=False, description=message)
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}")
+                # Wait 1 sec before next scrape, but cancel instantly if stopped
+                if stop_event.wait(1):
+                    return
 
-            # ⏳ Replace time.sleep with stop_event-aware countdown
-            for _ in range(delay):
-                if stop_event.is_set():
-                    return  # Exit immediately
-                time.sleep(1)  # Small step to check stop_event frequently
+            except Exception as e:
+                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ({ip}) Error: {e}")
+                attempt += 1
 
+                if session is not None:
+                    session.close()
+                    session = None  # Force re-login next loop
 
+                if attempt >= max_attempts:
+                    failed_msg = f"({ip}) ❌ Marked as failed after {attempt} attempts."
+                    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {failed_msg}")
+                    _update_state(goip, is_running=False, description=failed_msg)
+                    return
+
+                delay = retry_delays[min(attempt - 1, max_attempts - 1)]
+                message = f"({ip}) Retrying in {delay} sec... (Attempt {attempt}/{max_attempts})"
+                _update_state(goip, is_running=False, description=message)
+                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}")
+
+                # ⏳ Replace time.sleep with stop_event-aware countdown
+                for _ in range(delay):
+                    if stop_event.is_set():
+                        return  # Exit immediately
+                    time.sleep(1)  # Small step to check stop_event frequently
+
+    finally:
+        if session is not None:
+            try:
+                session.close()
+            except Exception as error:
+                print(
+                    f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                    f"({ip}) Failed to close session: {error}"
+                )
 # --------------------------- Public API ----------------------------
 
 def start_goip_monitoring(
