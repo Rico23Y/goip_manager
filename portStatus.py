@@ -9,6 +9,7 @@ from app.repositories.notification_settings_repository import (
     NotificationSettingsRepository,
 )
 from app.services.port_status_service import scrape_goip_data
+from app.services.notification_service import NotificationService
 
 NOTIFICATION_FILE = get_appdata_path("notification_setting.json")
 
@@ -18,10 +19,6 @@ notification_settings_repository = NotificationSettingsRepository(
 
 pause_event = threading.Event()
 pause_remaining = 0  # seconds left to resume
-
-_last_sim_status = defaultdict(dict)       # goip -> port -> last sim_status
-_last_network_count = defaultdict(lambda: None)  # goip -> last match count
-_last_signal_alert = defaultdict(lambda: None)   # goip -> last signal alert (bar or custom)
 
 _goip_state = {}
 # Prevent multiple concurrent start/stop sequences
@@ -324,83 +321,12 @@ def launch_view_tabs(device_repository, goip_window=0):
         except Exception:
             pass
 
+notification_service = NotificationService(notify_user)
+
+
 def check_for_notifications(goip: str, data: list):
-    settings = _notification_settings
-    if not settings.get("enabled", False):
-        return
+    notification_service.check_for_notifications(goip, data)
 
-    # === SIM STATUS ===
-    sim_config = settings.get("sim_status", {})
-    if sim_config.get("enabled", False):
-        sim_alerts = sim_config.get("values", [])
-        for idx, row in enumerate(data):
-            sim_status = row[0]
-            if sim_status in sim_alerts and sim_status != _last_sim_status[goip].get(idx):
-                sim_text = status_map.get(sim_status, f"Code {sim_status}")
-                notify_user(f"{goip} port {idx + 1}{row[3]} - {sim_text}", goip, idx)
-                _last_sim_status[goip][idx] = sim_status
-
-    # === NETWORK TYPE ===
-    net_config = settings.get("network_type", {})
-    if net_config.get("enabled", False):
-        values = net_config.get("values", [])
-        operator = net_config.get("operator", ">")
-        count_threshold = net_config.get("count", 0)
-        match_count = sum(1 for row in data if NETWORK_LABEL[row[2]] in values)
-
-        if match_count != _last_network_count[goip]:
-            if operator == ">" and match_count > count_threshold:
-                notify_user(f"{goip} network {values} is greater than {count_threshold}: {match_count}/{len(data)}", goip, -1)
-            elif operator == "<" and match_count < count_threshold:
-                notify_user(f"{goip} network {values} is less than {count_threshold}: {match_count}/{len(data)}", goip, -1)
-            _last_network_count[goip] = match_count
-
-    # === SIGNAL ===
-    signal_config = settings.get("signal", {})
-    if signal_config.get("enabled", False):
-        bar_conf = signal_config.get("bar", {})
-        custom_conf = signal_config.get("custom", {})
-        total_ports = len(data)
-
-        # Bar mode
-        if bar_conf.get("enabled", False):
-            bar_values = bar_conf.get("values", [])
-            for bar in bar_values:
-                count = sum(1 for row in data if signal_to_level(str(row[1])) == bar)
-                op = custom_conf.get("operator", ">")
-                count_thresh = custom_conf.get("count", 0)
-                key = ("bar", bar, count)
-
-                if key != _last_signal_alert[goip]:
-                    if op == ">" and count > count_thresh:
-                        notify_user(f"{goip} bar {bar} signal > {count_thresh}: {count}/{total_ports}", goip, -1)
-                        _last_signal_alert[goip] = key
-                    elif op == "<" and count < count_thresh:
-                        notify_user(f"{goip} bar {bar} signal < {count_thresh}: {count}/{total_ports}", goip, -1)
-                        _last_signal_alert[goip] = key
-
-        # Custom signal mode
-        if custom_conf.get("enabled", False):
-            min_val = custom_conf.get("min", 0)
-            max_val = custom_conf.get("max", 0)
-            op = custom_conf.get("operator", ">")
-            count_thresh = custom_conf.get("count", 0)
-            match_count = 0
-            for row in data:
-                try:
-                    strength = int(row[1])
-                    if min_val <= strength <= max_val:
-                        match_count += 1
-                except:
-                    continue
-            key = ("custom", min_val, max_val, match_count)
-            if key != _last_signal_alert[goip]:
-                if op == ">" and match_count > count_thresh:
-                    notify_user(f"{goip} Signal {min_val}-{max_val} > {count_thresh}: {match_count}/{total_ports}", goip, -1)
-                    _last_signal_alert[goip] = key
-                elif op == "<" and match_count < count_thresh:
-                    notify_user(f"{goip} Signal {min_val}-{max_val} < {count_thresh}: {match_count}/{total_ports}", goip, -1)
-                    _last_signal_alert[goip] = key
 
 def load_notification_settings():
     global _notification_settings
@@ -409,6 +335,8 @@ def load_notification_settings():
         _notification_settings = (
             notification_settings_repository.load_settings()
         )
+        notification_service.update_settings(_notification_settings)
+
         print(
             f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
             "[INFO] Notification settings reloaded."
@@ -419,6 +347,7 @@ def load_notification_settings():
             f"[ERROR] Failed to load notification settings: {e}"
         )
         _notification_settings = {}
+        notification_service.update_settings({})
 
 def update_notification_settings_from_ui():
     # Call this after saving settings in the UI
