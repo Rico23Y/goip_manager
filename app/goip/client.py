@@ -48,80 +48,87 @@ def login_goip(device: GoipDevice) -> requests.Session | None:
     base_url = f"http://{ip}"
 
     session = requests.Session()
-    session.headers.update({"User-Agent": "Mozilla/5.0"})
+    authenticated = False
 
     try:
-        session.get(f"{base_url}/login_en.html", timeout=5)
-    except requests.RequestException as error:
+        session.headers.update({"User-Agent": "Mozilla/5.0"})
+
+        try:
+            session.get(f"{base_url}/login_en.html", timeout=5)
+        except requests.RequestException as error:
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"[{ip}] Cannot reach device: {error}"
+            )
+            return None
+
+        nonce = get_auth_cookie_value(session)
+        if not nonce:
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"[{ip}] No auth_* cookie found."
+            )
+            return None
+
+        digest = md5_hex(f"{username}:{password}:{nonce}")
+        payload = {
+            "encoded": f"{username}:{digest}",
+            "nonce": nonce,
+        }
+        headers = {
+            "Origin": base_url,
+            "Referer": f"{base_url}/login_en.html",
+        }
+
+        try:
+            response = session.post(
+                f"{base_url}/login_en.html",
+                data=payload,
+                headers=headers,
+                timeout=5,
+            )
+            html = response.text or ""
+        except requests.RequestException as error:
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"[{ip}] POST failed: {error}"
+            )
+            return None
+
+        status, remaining = parse_login_status(html)
+
+        if status == "0":
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"GOIP {device.goip} ({ip}) Login successful."
+            )
+            authenticated = True
+            return session
+
+        text_lower = html.lower()
+
+        if (
+            "account or password is wrong" in text_lower
+            or (remaining is not None and remaining >= 0)
+            or "login" in response.url.lower()
+        ):
+            message = f"Wrong credentials for {ip}"
+            if remaining is not None:
+                message += f" (remaining attempts {remaining})"
+
+            print(
+                f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"❌ {message}"
+            )
+            signals.wrongPassword.emit(device)
+            return None
+
         print(
             f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
-            f"[{ip}] Cannot reach device: {error}"
+            f"[{ip}] ⚠ Ambiguous login response"
         )
         return None
 
-    nonce = get_auth_cookie_value(session)
-    if not nonce:
-        print(
-            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
-            f"[{ip}] No auth_* cookie found."
-        )
-        return None
-
-    digest = md5_hex(f"{username}:{password}:{nonce}")
-    payload = {
-        "encoded": f"{username}:{digest}",
-        "nonce": nonce,
-    }
-    headers = {
-        "Origin": base_url,
-        "Referer": f"{base_url}/login_en.html",
-    }
-
-    try:
-        response = session.post(
-            f"{base_url}/login_en.html",
-            data=payload,
-            headers=headers,
-            timeout=5,
-        )
-        html = response.text or ""
-    except requests.RequestException as error:
-        print(
-            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
-            f"[{ip}] POST failed: {error}"
-        )
-        return None
-
-    status, remaining = parse_login_status(html)
-
-    if status == "0":
-        print(
-            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
-            f"GOIP {device.goip} ({ip}) Login successful."
-        )
-        return session
-
-
-    text_lower = html.lower()
-
-    if (
-        "account or password is wrong" in text_lower
-        or (remaining is not None and remaining >= 0)
-        or "login" in response.url.lower()
-    ):
-        message = f"Wrong credentials for {ip}"
-        if remaining is not None:
-            message += f" (remaining attempts {remaining})"
-
-        print(
-            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
-            f"❌ {message}"
-        )
-        signals.wrongPassword.emit(device)
-        return None
-
-    print(
-        f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
-        f"[{ip}] ⚠ Ambiguous login response"
-    )
-    return None
+    finally:
+        if not authenticated:
+            session.close()

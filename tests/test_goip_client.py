@@ -86,7 +86,9 @@ class TestGoipClient(unittest.TestCase):
         result = login_goip(self.device)
 
         self.assertIsNone(result)
+        session.close.assert_called_once_with()
         session.post.assert_not_called()
+
 
     @patch("app.goip.client.requests.Session")
     def test_login_goip_connection_failure(self, session_class):
@@ -97,6 +99,22 @@ class TestGoipClient(unittest.TestCase):
 
         self.assertIsNone(result)
         session.post.assert_not_called()
+        session.close.assert_called_once_with()
+
+
+    @patch("app.goip.client.requests.Session")
+    def test_login_goip_post_failure_closes_session(self, session_class):
+        session = session_class.return_value
+        session.cookies = requests.cookies.RequestsCookieJar()
+        session.cookies.set("auth_nonce", "nonce-value")
+        session.post.side_effect = requests.ConnectionError("POST failed")
+
+        result = login_goip(self.device)
+
+        self.assertIsNone(result)
+        session.get.assert_called_once()
+        session.post.assert_called_once()
+        session.close.assert_called_once_with()
 
     @patch("app.goip.client.requests.Session")
     def test_login_goip_wrong_password_emits_signal(self, session_class):
@@ -124,6 +142,7 @@ class TestGoipClient(unittest.TestCase):
             signals.wrongPassword.disconnect(capture_device)
 
         self.assertIsNone(result)
+        session.close.assert_called_once_with()
         self.assertEqual(received_devices, [self.device])
 
 if __name__ == "__main__":
