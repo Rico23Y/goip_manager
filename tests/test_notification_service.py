@@ -78,6 +78,59 @@ class TestNotificationService(unittest.TestCase):
         self.notify_user.assert_called_once()
         self.assertIn("Signal 10-20", self.notify_user.call_args.args[0])
 
+    def test_bar_signal_alert_is_sent_when_threshold_is_exceeded(self):
+        self.service.update_settings({
+            "enabled": True,
+            "signal": {
+                "enabled": True,
+                "bar": {
+                    "enabled": True,
+                    "values": [3],
+                },
+                "custom": {
+                    "enabled": False,
+                    "operator": ">",
+                    "count": 0,
+                },
+            },
+        })
+        data = [
+            [3, "15", 4, " (port 1)", "00:10:00"],
+            [3, "15", 4, " (port 2)", "00:10:00"],
+        ]
+
+        self.service.check_for_notifications("GOIP-1", data)
+
+        self.notify_user.assert_called_once()
+        self.assertIn("bar 3 signal", self.notify_user.call_args.args[0])
+        self.assertIn("2/2", self.notify_user.call_args.args[0])
+
+    def test_bar_signal_alert_is_not_repeated_for_same_condition(self):
+        self.service.update_settings({
+            "enabled": True,
+            "signal": {
+                "enabled": True,
+                "bar": {
+                    "enabled": True,
+                    "values": [3],
+                },
+                "custom": {
+                    "enabled": False,
+                    "operator": ">",
+                    "count": 0,
+                },
+            },
+        })
+        data = [
+            [3, "15", 4, " (port 1)", "00:10:00"],
+            [3, "15", 4, " (port 2)", "00:10:00"],
+        ]
+
+        self.service.check_for_notifications("GOIP-1", data)
+        self.service.check_for_notifications("GOIP-1", data)
+
+        self.notify_user.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()
