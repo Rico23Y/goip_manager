@@ -8,6 +8,7 @@ from app.repositories.device_repository import DeviceRepository
 from app.repositories.notification_settings_repository import (
     NotificationSettingsRepository,
 )
+from app.services.port_status_service import scrape_goip_data
 
 NOTIFICATION_FILE = get_appdata_path("notification_setting.json")
 
@@ -40,45 +41,6 @@ attempt_minutes = ['', ': 2 minutes left', ': 5 minutes left (last try)']
 _notification_settings = {}
 
 # ------------------------- internal helpers -------------------------
-
-def scrape_goip_data(
-    device: GoipDevice,
-    session
-):
-    ip = device.ip_address
-    data_url = f"http://{ip}/get_parameter.html"
-
-    headers = {
-        "X-Requested-With": "XMLHttpRequest",
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    payload = "type=updatePortStatusDetail"
-
-    try:
-        data_resp = session.post(data_url, headers=headers, data=payload, timeout=5)
-        data_json = data_resp.json()
-    except Exception as e:
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ({ip}) Failed to retrieve or parse port data: {e}")
-        return None
-
-    result = []
-    for row in data_json.get("data", []):
-        try:
-            signal = row[7]
-            network = row[9]
-            portChannel = row[2]
-            simStatus = row[13]
-            statusDuration = row[14]
-            if signal == '':
-                network = 0
-
-            result.append([simStatus, signal, network, portChannel, statusDuration])
-        except IndexError:
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ({ip}) Skipped malformed row: {row}")
-            continue
-
-    return result
-
 # Get the correct base path (works both in Python and frozen exe)
 if getattr(sys, 'frozen', False):  # Running as EXE
     base_path = sys._MEIPASS
