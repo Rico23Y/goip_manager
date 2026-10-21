@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from app.models.goip_device import GoipDevice
 from app.repositories.device_repository import DeviceRepository
@@ -93,6 +94,30 @@ class TestDeviceRepository(unittest.TestCase):
 
         self.assertEqual(len(devices), 1)
         self.assertEqual(devices[0].ip_address, "192.168.0.101")
+
+    def test_load_devices_propagates_read_error(self) -> None:
+        self.config_file.write_text(
+            "[]",
+            encoding="utf-8",
+        )
+
+        original_open = Path.open
+
+        def fail_for_config_file(path, *args, **kwargs):
+            if path == self.config_file:
+                raise OSError("Permission denied")
+            return original_open(path, *args, **kwargs)
+
+        with patch.object(
+            Path,
+            "open",
+            new=fail_for_config_file,
+        ):
+            with self.assertRaisesRegex(
+                OSError,
+                "Permission denied",
+            ):
+                self.repository.load_devices()
 
 
 if __name__ == "__main__":
