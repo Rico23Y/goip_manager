@@ -1,4 +1,4 @@
-import threading
+import os
 from PySide6.QtCore import Qt, QTimer, QSize, QRunnable, QThreadPool, Signal, QObject
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QScrollArea, QPushButton,
@@ -18,27 +18,15 @@ class WorkerSignals(QObject):
 
 # --- Worker task ---
 class PortCheckTask(QRunnable):
-    def __init__(self, goip_label, ip, stop_event):
+    def __init__(self, goip_label, ip):
         super().__init__()
         self.goip_label = goip_label
         self.ip = ip
-        self.stop_event = stop_event
         self.signals = WorkerSignals()
 
     def run(self):
-        if self.stop_event.is_set():
-            return
-
         online = is_port_open(self.ip)
-
-        if self.stop_event.is_set():
-            return
-
-        self.signals.result.emit(
-            self.goip_label,
-            self.ip,
-            online
-        )
+        self.signals.result.emit(self.goip_label, self.ip, online)
 
 class InboxSMSTab(QWidget):
     def __init__(
@@ -47,14 +35,11 @@ class InboxSMSTab(QWidget):
     ) -> None:
         super().__init__()
 
-        self._stop_event = threading.Event()
-        self.threadpool = QThreadPool()
-
         self.device_repository = device_repository
         self.setObjectName("InboxSMSTab")
-
-        self.goip_frame_cache = {}
-        self.last_status_cache = {}
+        self.goip_frame_cache = {}    # goip_label -> (ip_lbl, status_lbl)
+        self.last_status_cache = {}   # goip_label -> (ip, online)
+        self.threadpool = QThreadPool()
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_status)
@@ -78,12 +63,7 @@ class InboxSMSTab(QWidget):
         open_all_btn.setIcon(QIcon(resource_path("icons", "browser.png")))
         open_all_btn.setIconSize(_ICON_SIZE)
         open_all_btn.setToolTip("Open all inboxes in browser")
-        open_all_btn.clicked.connect(
-            lambda: launch_inboxSMS_tabs(
-                self.device_repository,
-                0
-            )
-        )
+        open_all_btn.clicked.connect(lambda: launch_inboxSMS_tabs(0))
         bottom_layout.addWidget(open_all_btn)
         main_layout.addLayout(bottom_layout)
 
@@ -91,15 +71,10 @@ class InboxSMSTab(QWidget):
         self.show_goip_sms_status()
 
     def start_updates(self):
-        self._stop_event.clear()
         self.timer.start(2000)
 
-
     def stop_updates(self):
-        self._stop_event.set()
         self.timer.stop()
-        self.threadpool.clear()
-        self.threadpool.waitForDone()
 
     def show_goip_sms_status(self):
         # Clear layout
@@ -118,7 +93,6 @@ class InboxSMSTab(QWidget):
         for idx, dev in enumerate(devices, start=1):
             goip_label = f"GOIP {idx}"
             ip = dev.ip_address
-
 
             # Placeholder labels
             frame = QFrame()
@@ -145,12 +119,7 @@ class InboxSMSTab(QWidget):
                 goip_number = int(goip_label.split()[-1])
             except ValueError:
                 goip_number = idx
-            browser_btn.clicked.connect(
-                lambda _, n=goip_number: launch_inboxSMS_tabs(
-                    self.device_repository,
-                    n
-                )
-            )
+            browser_btn.clicked.connect(lambda _, n=goip_number: launch_inboxSMS_tabs(n))
 
             layout.addWidget(goip_lbl)
             layout.addWidget(ip_lbl)
@@ -164,30 +133,18 @@ class InboxSMSTab(QWidget):
             self.last_status_cache[goip_label] = (ip, None)  # unknown yet
 
             # Threaded port check
-            task = PortCheckTask(
-                goip_label,
-                ip,
-                self._stop_event
-            )
+            task = PortCheckTask(goip_label, ip)
             task.signals.result.connect(self.update_ui_status)
             self.threadpool.start(task)
 
     def update_status(self):
-        if self._stop_event.is_set():
-            return
-
         devices = self.device_repository.load_devices()
 
         for idx, device in enumerate(devices, start=1):
             goip_label = f"GOIP {idx}"
             ip = device.ip_address
 
-            task = PortCheckTask(
-                goip_label,
-                ip,
-                self._stop_event
-            )
-
+            task = PortCheckTask(goip_label, ip)
             task.signals.result.connect(self.update_ui_status)
             self.threadpool.start(task)
 

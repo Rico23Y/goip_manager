@@ -1,26 +1,20 @@
-
-import atexit
-import ctypes
-import sys
-import time
-
-import edge_driver_updater
-
+import edge_driver_updater, sys, json, os, time, atexit, ctypes
 from PySide6.QtCore import Signal, Qt, QUrl
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout,
     QListWidget, QStackedWidget, QMessageBox, QStyleFactory
 )
 from PySide6.QtGui import QIcon, QPalette, QColor
-from utils import signals, resource_path
-from app.ui.tabs.login_tab import create_login_tab, DeviceRow
-from app.ui.tabs.port_status_tab import create_port_status_tab
-from app.ui.tabs.inbox_sms_tab import create_inbox_sms_tab
-from app.ui.tabs.restart_tab import create_restart_tab
-from app.ui.tabs.console_tab import create_console_tab, DualOutput
+from utils import signals, get_appdata_path, resource_path
+from login_tab import create_login_tab, DeviceRow
+from port_status_tab import create_port_status_tab
+from inbox_sms_tab import create_inbox_sms_tab
+from restart_tab import create_restart_tab
+from console_tab import create_console_tab, DualOutput
+
 
 from app.repositories.device_repository import DeviceRepository
-
+from app.models.goip_device import GoipDevice
 
 
 app_version = '1.3.2'
@@ -101,6 +95,7 @@ class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.device_repository = DeviceRepository()
+        self.config_file = get_appdata_path("devices.json")
         icon_path = resource_path("icons", "signal.png")
         self.setWindowIcon(QIcon(icon_path))
         self.setWindowTitle(f"GOIP Monitor App {app_version}v")
@@ -394,14 +389,7 @@ class MainApp(QMainWindow):
             .replace("__DOWN__", down_arrow)
         )
 
-
     def closeEvent(self, event):
-        # Stop Port Status timers and background workers
-        self.port_status_tab.shutdown()
-
-        # Stop Inbox SMS background workers/timer
-        self.inbox_sms_tab.stop_updates()
-
         super().closeEvent(event)
 
     def message_running(self, message_about,message_type):
@@ -522,21 +510,26 @@ class MainApp(QMainWindow):
 
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Saved File")
 
+    def load_devices_from_file(self):
+        global devices
 
-    def load_devices_from_file(self) -> None:
-        """Load device configurations into the login tab."""
-        devices = self.device_repository.load_devices()
+        if os.path.exists(self.config_file):
+            try:
+                devices = self.device_repository.load_devices()
 
-        for device in devices:
-            self.add_device_row(
-                ip=device.ip_address,
-                username=device.username,
-                password=device.password,
-            )
+                if devices:
+                    for dev in devices:
+                        self.add_device_row(
+                            ip=dev.ip_address,
+                            username=dev.username,
+                            password=dev.password
+                        )
+                    return
 
-        if not devices:
-            self.add_device_row()
+            except json.JSONDecodeError:
+                print("Invalid JSON")
 
+        self.add_device_row()
 
 
 if __name__ == "__main__":
