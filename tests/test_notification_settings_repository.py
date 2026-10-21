@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from app.repositories.notification_settings_repository import (
     NotificationSettingsRepository,
@@ -60,6 +61,29 @@ class TestNotificationSettingsRepository(unittest.TestCase):
 
         self.assertEqual(self.repository.load_settings(), {})
 
+    def test_load_settings_propagates_read_error(self) -> None:
+        self.config_file.write_text(
+            '{"enabled": true}',
+            encoding="utf-8",
+        )
+
+        original_open = Path.open
+
+        def fail_for_config_file(path, *args, **kwargs):
+            if path == self.config_file:
+                raise OSError("Permission denied")
+            return original_open(path, *args, **kwargs)
+
+        with patch.object(
+            Path,
+            "open",
+            new=fail_for_config_file,
+        ):
+            with self.assertRaisesRegex(
+                OSError,
+                "Permission denied",
+            ):
+                self.repository.load_settings()
 
 if __name__ == "__main__":
     unittest.main()
