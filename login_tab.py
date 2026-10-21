@@ -557,7 +557,10 @@ class DeviceListLayout(QVBoxLayout):
                         return  # Cancel clicked → stop everything
                     break  # only show ONE dialog
         # ✅ Safe to launch now
-        launch_home_tabs(0)
+        launch_home_tabs(
+            self.device_repository,
+            0
+        )
 
     def update_goip_labels(self):
         for i in range(self.count()):
