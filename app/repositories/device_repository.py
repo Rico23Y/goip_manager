@@ -39,7 +39,7 @@ class DeviceRepository:
         ]
 
     def save_devices(self, devices: list[GoipDevice]) -> None:
-        """Save all GOIP devices to the configuration file."""
+        """Save all GOIP devices without risking the existing configuration."""
 
         data = []
 
@@ -48,8 +48,17 @@ class DeviceRepository:
             device_data["goip"] = f"GOIP {index}"
             data.append(device_data)
 
-        with self.config_file.open("w", encoding="utf-8") as file:
-            json.dump(data, file, indent=4)
+        temp_file = self.config_file.with_suffix(
+            self.config_file.suffix + ".tmp"
+        )
 
-            file.flush()
-            os.fsync(file.fileno())
+        try:
+            with temp_file.open("w", encoding="utf-8") as file:
+                json.dump(data, file, indent=4)
+                file.flush()
+                os.fsync(file.fileno())
+
+            os.replace(temp_file, self.config_file)
+        finally:
+            if temp_file.exists():
+                temp_file.unlink()
