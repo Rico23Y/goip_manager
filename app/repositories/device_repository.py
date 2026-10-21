@@ -60,5 +60,8 @@ class DeviceRepository:
 
             os.replace(temp_file, self.config_file)
         finally:
-            if temp_file.exists():
-                temp_file.unlink()
+            try:
+                if temp_file.exists():
+                    temp_file.unlink()
+            except OSError:
+                pass
