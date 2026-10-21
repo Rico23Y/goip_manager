@@ -15,7 +15,6 @@ from app.repositories.device_repository import DeviceRepository
 
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
-DEVICES_FILE = get_appdata_path("devices.json")
 RESTART_FILE = get_appdata_path("restart_setting.json")
 
 # ---------- Helpers ----------
@@ -228,6 +227,52 @@ class ScheduleBlock(QGroupBox):
         buttons_row.addWidget(self.delete_block_btn)
 
         layout.addLayout(buttons_row)
+
+    def refresh_devices(self, devices: list) -> None:
+        """Refresh the device checkboxes while preserving selections by index."""
+        selected_indices = {
+            index
+            for index, checkbox in enumerate(self.device_checkboxes, start=1)
+            if checkbox.isChecked()
+        }
+
+        self.devices = devices
+
+        # Find the device scroll area and its layout.
+        dev_scroll = self.findChild(QScrollArea)
+        if dev_scroll is None or dev_scroll.widget() is None:
+            return
+
+        dev_container = dev_scroll.widget()
+        dev_layout = dev_container.layout()
+
+        if dev_layout is None:
+            return
+
+        # Remove the old checkboxes.
+        while dev_layout.count():
+            item = dev_layout.takeAt(0)
+            widget = item.widget()
+
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()
+
+        self.device_checkboxes.clear()
+
+        # Rebuild the checkboxes.
+        for index, device in enumerate(self.devices, start=1):
+            checkbox = QCheckBox(f"GOIP {index}")
+            checkbox.setChecked(index in selected_indices)
+            checkbox.stateChanged.connect(
+                lambda state, idx=index: self._device_toggled(idx - 1, state)
+            )
+
+            self.device_checkboxes.append(checkbox)
+            dev_layout.addWidget(checkbox)
+
+        self._update_ui_state()
+
 
     # ---------- device helpers ----------
     def _select_all_devices(self):
@@ -1181,59 +1226,53 @@ class RestartTab(QWidget):
         layout.addLayout(bottom)
         return group
 
-    def _load_devices(self):
-        if os.path.exists(self.devices_file):
-            with open(self.devices_file, "r", encoding="utf-8") as f:
-                try:
-                    return json.load(f)
-                except Exception:
-                    return []
-        return []
-
     def _refresh_devices(self):
-        self.devices = self._load_devices()
+        self.devices = self.device_repository.load_devices()
 
-        # --- Refresh main devices group checkboxes ---
+        # Refresh the main device checkboxes.
         if hasattr(self, "main_device_checkboxes"):
-            for cb in self.main_device_checkboxes:
-                cb.setParent(None)  # remove from layout
+            selected_indices = {
+                index
+                for index, checkbox in enumerate(
+                    self.main_device_checkboxes,
+                    start=1
+                )
+                if checkbox.isChecked()
+            }
+
+            for checkbox in self.main_device_checkboxes:
+                checkbox.setParent(None)
+                checkbox.deleteLater()
+
             self.main_device_checkboxes.clear()
 
-            for d in self.devices:
-                cb = QCheckBox(d.goip)
-                self.main_device_checkboxes.append(cb)
-                # Find the layout inside the scroll area and add the checkbox
-                scroll_area = self.main_devices_group.findChild(QScrollArea)
-                if scroll_area:
-                    dev_container = scroll_area.widget()
-                    if dev_container:
-                        dev_layout = dev_container.layout()
-                        dev_layout.addWidget(cb)
+            scroll_area = self.main_devices_group.findChild(QScrollArea)
 
-        # --- Refresh schedule block device checkboxes ---
-        for i in range(self.blocks_container.count()):
-            item = self.blocks_container.itemAt(i)
+            if scroll_area is not None and scroll_area.widget() is not None:
+                dev_container = scroll_area.widget()
+                dev_layout = dev_container.layout()
+
+                if dev_layout is not None:
+                    for index, device in enumerate(self.devices, start=1):
+                        checkbox = QCheckBox(f"GOIP {index}")
+                        checkbox.setChecked(index in selected_indices)
+                        self.main_device_checkboxes.append(checkbox)
+                        dev_layout.addWidget(checkbox)
+
+        # Refresh each schedule block through its own method.
+        for index in range(self.blocks_container.count()):
+            item = self.blocks_container.itemAt(index)
             block = item.widget()
-            if block and hasattr(block, "device_checkboxes"):
-                # Remove old checkboxes
-                for cb in block.device_checkboxes:
-                    cb.setParent(None)
-                block.device_checkboxes.clear()
 
-                # Add new checkboxes
-                dev_scroll = block.findChild(QScrollArea)
-                if dev_scroll:
-                    dev_container = dev_scroll.widget()
-                    if dev_container:
-                        dev_layout = dev_container.layout()
-                        for idx, d in enumerate(self.devices):
-                            cb = QCheckBox(d.goip)
-                            cb.stateChanged.connect(lambda st, i=idx: block._device_toggled(i, st))
-                            block.device_checkboxes.append(cb)
-                            dev_layout.addWidget(cb)
+            if isinstance(block, ScheduleBlock):
+                block.refresh_devices(self.devices)
 
-        QMessageBox.information(self, "Devices Refreshed", "Devices have been refreshed in all blocks.")
-
+        QMessageBox.information(
+            self,
+            "Devices Refreshed",
+            "Devices have been refreshed in all blocks."
+        )
+        
     def _add_block(self):
         blk = ScheduleBlock(self.devices, self)
         self.blocks_container.addWidget(blk)
