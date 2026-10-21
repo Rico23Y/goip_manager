@@ -1,4 +1,3 @@
-
 import json
 import tempfile
 import unittest
@@ -118,6 +117,76 @@ class TestDeviceRepository(unittest.TestCase):
                 "Permission denied",
             ):
                 self.repository.load_devices()
+
+    def test_save_failure_preserves_existing_configuration(self) -> None:
+        original_data = [
+            {
+                "goip": "GOIP 1",
+                "ip": "192.168.0.101",
+                "username": "admin",
+                "password": "password1",
+                "enabled": True,
+            }
+        ]
+        self.config_file.write_text(
+            json.dumps(original_data),
+            encoding="utf-8",
+        )
+
+        devices = [
+            GoipDevice(
+                goip="New device",
+                ip_address="192.168.0.102",
+                username="admin",
+                password="password2",
+                enabled=True,
+            )
+        ]
+
+        with patch(
+            "app.repositories.device_repository.json.dump",
+            side_effect=OSError("Simulated write failure"),
+        ):
+            with self.assertRaisesRegex(
+                OSError,
+                "Simulated write failure",
+            ):
+                self.repository.save_devices(devices)
+
+        saved_data = json.loads(
+            self.config_file.read_text(encoding="utf-8")
+        )
+        self.assertEqual(saved_data, original_data)
+
+    def test_cleanup_failure_does_not_hide_save_error(self) -> None:
+        devices = [
+            GoipDevice(
+                goip="New device",
+                ip_address="192.168.0.102",
+                username="admin",
+                password="password2",
+                enabled=True,
+            )
+        ]
+
+        temp_file = self.config_file.with_suffix(
+            self.config_file.suffix + ".tmp"
+        )
+
+        with patch(
+            "app.repositories.device_repository.json.dump",
+            side_effect=OSError("Original write failure"),
+        ):
+            with patch.object(
+                Path,
+                "unlink",
+                side_effect=OSError("Cleanup failure"),
+            ):
+                with self.assertRaisesRegex(
+                    OSError,
+                    "Original write failure",
+                ):
+                    self.repository.save_devices(devices)
 
 
 if __name__ == "__main__":
