@@ -5,3 +5,5 @@ Output/
 dist_installer/
 test_code.py
 __pycache__/
+*.py[cod]
+.pytest_cache/
