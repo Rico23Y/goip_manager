@@ -264,3 +264,49 @@ def launch_home_tabs(device_repository, goip_window: int = 0) -> None:
 
         except Exception as error:
             print(f"Error opening home page: {error}")
+
+
+def select_list_mode(driver, wait) -> None:
+    """Switch the GOIP port-status page to list mode."""
+    wait.until(EC.presence_of_element_located((By.ID, "listModeBtn")))
+    checkbox = driver.find_element(By.ID, "listModeBtn")
+
+    if not checkbox.is_selected():
+        checkbox.click()
+
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+
+def launch_view_tabs(device_repository, goip_window: int = 0) -> None:
+    """Open port-status viewer tabs for all devices or one selected device."""
+    viewer_driver, viewer_main_window = viewer_options()
+    os.system("cls")
+
+    if goip_window == 0:
+        try:
+            open_viewer_tabs(
+                "port_status_en.html",
+                "Port Status Opened",
+                viewer_driver,
+                device_repository,
+                post_login_action=select_list_mode,
+            )
+
+            viewer_driver.switch_to.window(viewer_main_window)
+            viewer_driver.close()
+        except Exception:
+            pass
+
+    if goip_window > 0:
+        try:
+            devices = device_repository.load_devices()
+
+            login_to_device(
+                "port_status_en.html",
+                "Port Status Opened",
+                viewer_driver,
+                devices[goip_window - 1],
+                post_login_action=select_list_mode,
+            )
+        except Exception:
+            pass

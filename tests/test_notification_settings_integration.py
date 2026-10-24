@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-import portStatus
+from app.services import port_status_orchestrator as portStatus
 
 
 class TestNotificationSettingsIntegration(unittest.TestCase):

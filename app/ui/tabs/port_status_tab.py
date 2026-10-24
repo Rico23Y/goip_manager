@@ -6,7 +6,12 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPixmap, QIcon, QIntValidator, QTextCursor, QPalette, QColor
 from PySide6.QtCore import Qt, QTimer, QObject, Signal, QThread, QObject, Signal, Slot, QRunnable, QThreadPool, \
     QMetaObject, Q_ARG, QSize
-from portStatus import start_goip_monitoring, get_goip_status_data, launch_view_tabs, update_notification_settings_from_ui
+from app.services.port_status_orchestrator import (
+    start_goip_monitoring,
+    get_goip_status_data,
+    update_notification_settings_from_ui,
+)
+from app.goip.browser import launch_view_tabs
 from app.core.goip_status import (
     NETWORK_LABEL,
     signal_to_level,
@@ -234,7 +239,7 @@ class PortStatusTab(QWidget):
 
         # Connections
         self.run_button.clicked.connect(self.toggle_monitoring)
-        self.open_all_browser_button.clicked.connect(lambda: launch_view_tabs(0))
+        self.open_all_browser_button.clicked.connect(lambda: launch_view_tabs(self.device_repository, 0))
         self.show_goip_ip_status()
 
     def show_goip_ip_status(self):
@@ -290,7 +295,7 @@ class PortStatusTab(QWidget):
                 goip_number = int(goip_label.split()[-1])
             except ValueError:
                 goip_number = idx
-            browser_btn.clicked.connect(lambda _, n=goip_number: launch_view_tabs(n))
+            browser_btn.clicked.connect(lambda _, n=goip_number: launch_view_tabs(self.device_repository, n))
 
             # Attach attributes
             frame.goip_lbl = goip_lbl
@@ -566,7 +571,7 @@ class PortStatusTab(QWidget):
         browser_btn.setToolTip("Open all in Browser")
         browser_btn.setFixedSize(24, 24)
         browser_btn.setFixedWidth(50)
-        browser_btn.clicked.connect(lambda: launch_view_tabs(0))
+        browser_btn.clicked.connect(lambda: launch_view_tabs(self.device_repository, 0))
         browser_btn.setStyleSheet("margin-top: -4px;")  # shift up by 5px visually
 
         grid.addWidget(browser_btn, 0, 33, alignment=Qt.AlignVCenter | Qt.AlignHCenter)
@@ -641,7 +646,7 @@ class PortStatusTab(QWidget):
         btn.setIcon(QIcon(resource_path("icons", "browser.png")))
         ip = self.goip_ip_map.get(goip_label, 'Unknown')
         btn.setToolTip(f"Launch {goip_label} ({ip}) in browser")
-        btn.clicked.connect(lambda _, goip_num=int(goip_label.split()[1]): launch_view_tabs(goip_num))
+        btn.clicked.connect(lambda _, goip_num=int(goip_label.split()[1]): launch_view_tabs(self.device_repository, goip_num))
         grid.addWidget(btn, 0, 33, 4, 1, alignment=Qt.AlignCenter)
 
         return frame

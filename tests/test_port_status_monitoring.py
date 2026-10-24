@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-import portStatus
+from app.services import port_status_orchestrator as portStatus
 
 
 class TestNotificationSettingsCompatibility(unittest.TestCase):
