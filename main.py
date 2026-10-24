@@ -12,7 +12,8 @@ from PySide6.QtWidgets import (
     QListWidget, QStackedWidget, QMessageBox, QStyleFactory
 )
 from PySide6.QtGui import QIcon, QPalette, QColor
-from utils import signals, resource_path
+from app.core.signals import signals
+from app.utils.paths import resource_path
 from app.ui.tabs.login_tab import create_login_tab, DeviceRow
 from app.ui.tabs.port_status_tab import create_port_status_tab
 from app.ui.tabs.inbox_sms_tab import create_inbox_sms_tab

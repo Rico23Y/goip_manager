@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox, QProgressDialog, QCheck
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from packaging import version
-from utils import get_appdata_path
+from app.core.config import get_appdata_path
 
 WEBDRIVER_NAME = "msedgedriver.exe"
 
