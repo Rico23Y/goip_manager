@@ -1,5 +1,18 @@
-from utils import *
-from utils import get_appdata_path, resource_path
+import os
+import sys
+import time
+
+from plyer import notification
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+
+from app.core.config import get_appdata_path
+from app.utils.paths import resource_path
+from app.goip.browser import (
+    login_to_device,
+    open_viewer_tabs,
+    viewer_options,
+)
 from app.repositories.device_repository import DeviceRepository
 from app.repositories.notification_settings_repository import (
     NotificationSettingsRepository,

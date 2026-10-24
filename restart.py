@@ -1,4 +1,8 @@
-from utils import *
+import time
+
+import requests
+
+from app.goip.client import login_goip
 from app.models.goip_device import GoipDevice
 
 def launch_restart_tabs(device_repository, goip_num):
