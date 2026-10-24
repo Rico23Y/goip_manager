@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 
 # Your restart implementation (must exist)
 from app.services.restart_service import launch_restart_tabs
+from app.services.restart_scheduler import next_occurrence_search
 from app.core.config import get_appdata_path
 from app.utils.paths import resource_path
 from app.repositories.device_repository import DeviceRepository
@@ -17,81 +18,6 @@ from app.repositories.device_repository import DeviceRepository
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 RESTART_FILE = get_appdata_path("restart_setting.json")
-
-# ---------- Helpers ----------
-def _days_in_month(year, month):
-    return calendar.monthrange(year, month)[1]
-
-
-def _next_occurrence_search(now, hour, minute, recurrence, selected_days, selected_weekdays, selected_months,
-                            selected_years, tz, max_days=365 * 5):
-    """
-    Forward search that honors:
-    - recurrence: 'daily' or 'weekly'
-    - selected_days: day-of-month set (1..31)
-    - selected_weekdays: set(0..6)
-    - selected_months: set(1..12)
-    - selected_years: set(year ints)
-    Special rule: if selected day > days in month for that month, it's treated as day 1 next month.
-    """
-    start_dt = now
-    start_date = now.date()
-    for offset in range(0, max_days + 1):
-        candidate_date = start_date + timedelta(days=offset)
-        y, m, d = candidate_date.year, candidate_date.month, candidate_date.day
-
-        # Year filter
-        if selected_years and y not in selected_years:
-            continue
-
-        # Month filter
-        if selected_months and m not in selected_months:
-            continue
-
-        match = False
-        if recurrence == "weekly":
-            if selected_weekdays:
-                if candidate_date.weekday() in selected_weekdays:
-                    match = True
-            else:
-                match = True
-        else:  # daily-like
-            if selected_days:
-                if d in selected_days:
-                    match = True
-                else:
-                    # overflow mapping: if candidate day is 1, see if any selected_day > prev month's dim
-                    if d == 1:
-                        prev_m = m - 1
-                        prev_y = y
-                        if prev_m == 0:
-                            prev_m = 12
-                            prev_y -= 1
-                        prev_dim = _days_in_month(prev_y, prev_m)
-                        for s in selected_days:
-                            if s > prev_dim:
-                                match = True
-                                break
-            else:
-                match = True
-
-        if not match:
-            continue
-
-        try:
-            candidate_naive = datetime(y, m, d, hour, minute)
-        except ValueError:
-            continue
-
-        try:
-            candidate_dt = tz.localize(candidate_naive)
-        except Exception:
-            candidate_dt = candidate_naive.replace(tzinfo=tz)
-
-        if candidate_dt > start_dt:
-            return candidate_dt
-    return None
-
 
 # ---------- Worker ----------
 class RestartWorker(QThread):
@@ -1380,7 +1306,7 @@ class RestartTab(QWidget):
             selected_weekdays = set()
         months = set(blk.months) if blk.months else set()
         years = set(blk.years) if blk.years else set()
-        return _next_occurrence_search(now, hh, mm, recurrence, selected_days, selected_weekdays, months, years, tz)
+        return next_occurrence_search(now, hh, mm, recurrence, selected_days, selected_weekdays, months, years, tz)
 
     def _gather_all_next_entries(self):
         now = self._current_reference_datetime()
