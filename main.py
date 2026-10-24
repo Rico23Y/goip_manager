@@ -4,7 +4,7 @@ import ctypes
 import sys
 import time
 
-import edge_driver_updater
+from app.services import edge_driver_updater
 
 from PySide6.QtCore import Signal, Qt, QUrl
 from PySide6.QtWidgets import (
