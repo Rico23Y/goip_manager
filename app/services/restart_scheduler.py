@@ -83,3 +83,33 @@ def next_occurrence_search(
             return candidate_dt
 
     return None
+
+
+def prepare_recurrence_settings(
+    recurrence_mode,
+    daily_days,
+    weekly_days,
+    months,
+    years,
+):
+    """Normalize a schedule block's recurrence settings for date searching."""
+    if recurrence_mode == "daily":
+        recurrence = "daily"
+        selected_days = set(daily_days)
+        selected_weekdays = set()
+    elif recurrence_mode == "weekly":
+        recurrence = "weekly"
+        selected_days = set()
+        selected_weekdays = set(weekly_days)
+    else:
+        recurrence = "daily"
+        selected_days = set()
+        selected_weekdays = set()
+
+    return (
+        recurrence,
+        selected_days,
+        selected_weekdays,
+        set(months) if months else set(),
+        set(years) if years else set(),
+    )

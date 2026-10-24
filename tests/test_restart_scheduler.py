@@ -133,5 +133,43 @@ class TestNextOccurrenceSearch(unittest.TestCase):
         )
 
 
+class TestPrepareRecurrenceSettings(unittest.TestCase):
+    def test_daily_mode_uses_daily_days(self):
+        from app.services.restart_scheduler import prepare_recurrence_settings
+
+        result = prepare_recurrence_settings(
+            "daily", {1, 15}, {0, 2}, {3, 4}, {2027}
+        )
+
+        self.assertEqual(
+            result,
+            ("daily", {1, 15}, set(), {3, 4}, {2027}),
+        )
+
+    def test_weekly_mode_uses_weekly_days(self):
+        from app.services.restart_scheduler import prepare_recurrence_settings
+
+        result = prepare_recurrence_settings(
+            "weekly", {1, 15}, {0, 2}, {3, 4}, {2027}
+        )
+
+        self.assertEqual(
+            result,
+            ("weekly", set(), {0, 2}, {3, 4}, {2027}),
+        )
+
+    def test_unrecognized_mode_uses_daily_fallback(self):
+        from app.services.restart_scheduler import prepare_recurrence_settings
+
+        result = prepare_recurrence_settings(
+            None, {1, 15}, {0, 2}, [], []
+        )
+
+        self.assertEqual(
+            result,
+            ("daily", set(), set(), set(), set()),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

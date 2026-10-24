@@ -10,7 +10,10 @@ from PySide6.QtWidgets import (
 
 # Your restart implementation (must exist)
 from app.services.restart_service import launch_restart_tabs
-from app.services.restart_scheduler import next_occurrence_search
+from app.services.restart_scheduler import (
+    next_occurrence_search,
+    prepare_recurrence_settings,
+)
 from app.core.config import get_appdata_path
 from app.utils.paths import resource_path
 from app.repositories.device_repository import DeviceRepository
@@ -528,21 +531,30 @@ class RestartTab(QWidget):
         except Exception:
             tz = pytz.UTC
         hh, mm = map(int, hour_str.split(":"))
-        if blk.recurrence_mode == "daily":
-            recurrence = "daily"
-            selected_days = set(blk.daily_days)
-            selected_weekdays = set()
-        elif blk.recurrence_mode == "weekly":
-            recurrence = "weekly"
-            selected_weekdays = set(blk.weekly_days)
-            selected_days = set()
-        else:
-            recurrence = "daily"
-            selected_days = set()
-            selected_weekdays = set()
-        months = set(blk.months) if blk.months else set()
-        years = set(blk.years) if blk.years else set()
-        return next_occurrence_search(now, hh, mm, recurrence, selected_days, selected_weekdays, months, years, tz)
+        (
+            recurrence,
+            selected_days,
+            selected_weekdays,
+            months,
+            years,
+        ) = prepare_recurrence_settings(
+            blk.recurrence_mode,
+            blk.daily_days,
+            blk.weekly_days,
+            blk.months,
+            blk.years,
+        )
+        return next_occurrence_search(
+            now,
+            hh,
+            mm,
+            recurrence,
+            selected_days,
+            selected_weekdays,
+            months,
+            years,
+            tz,
+        )
 
     def _gather_all_next_entries(self):
         now = self._current_reference_datetime()
