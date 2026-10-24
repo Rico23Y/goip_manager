@@ -5,8 +5,9 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QFrame
 )
 from PySide6.QtGui import QIcon
-from inboxSMS import launch_inboxSMS_tabs
-from utils import is_port_open, resource_path
+from app.services.inbox_sms_service import launch_inbox_sms_tabs
+from app.goip.connection import is_port_open
+from app.utils.paths import resource_path
 from app.repositories.device_repository import DeviceRepository
 
 _BTN_SIZE = QSize(28, 28)
@@ -79,7 +80,7 @@ class InboxSMSTab(QWidget):
         open_all_btn.setIconSize(_ICON_SIZE)
         open_all_btn.setToolTip("Open all inboxes in browser")
         open_all_btn.clicked.connect(
-            lambda: launch_inboxSMS_tabs(
+            lambda: launch_inbox_sms_tabs(
                 self.device_repository,
                 0
             )
@@ -146,7 +147,7 @@ class InboxSMSTab(QWidget):
             except ValueError:
                 goip_number = idx
             browser_btn.clicked.connect(
-                lambda _, n=goip_number: launch_inboxSMS_tabs(
+                lambda _, n=goip_number: launch_inbox_sms_tabs(
                     self.device_repository,
                     n
                 )

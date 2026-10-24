@@ -1,4 +1,10 @@
-from utils import *
+import os
+
+from app.goip.browser import (
+    login_to_device,
+    open_viewer_tabs,
+    viewer_options,
+)
 from app.repositories.device_repository import DeviceRepository
 
 def launch_inboxSMS_tabs(
@@ -47,8 +53,3 @@ def launch_inboxSMS_tabs(
 
         except Exception as e:
             print(f"Error opening inbox page: {e}")
-
-
-
-
-

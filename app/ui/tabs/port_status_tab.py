@@ -7,8 +7,14 @@ from PySide6.QtGui import QPixmap, QIcon, QIntValidator, QTextCursor, QPalette, 
 from PySide6.QtCore import Qt, QTimer, QObject, Signal, QThread, QObject, Signal, Slot, QRunnable, QThreadPool, \
     QMetaObject, Q_ARG, QSize
 from portStatus import start_goip_monitoring, get_goip_status_data, launch_view_tabs, update_notification_settings_from_ui
-from utils import status_map, is_port_open, signal_to_level, NETWORK_LABEL, get_appdata_path, \
-    resource_path
+from app.core.goip_status import (
+    NETWORK_LABEL,
+    signal_to_level,
+    status_map,
+)
+from app.core.config import get_appdata_path
+from app.goip.connection import is_port_open
+from app.utils.paths import resource_path
 import os
 from app.repositories.device_repository import DeviceRepository
 from app.repositories.notification_settings_repository import (

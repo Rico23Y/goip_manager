@@ -9,8 +9,9 @@ from PySide6.QtWidgets import (
 )
 
 # Your restart implementation (must exist)
-from restart import launch_restart_tabs
-from utils import get_appdata_path, resource_path
+from app.services.restart_service import launch_restart_tabs
+from app.core.config import get_appdata_path
+from app.utils.paths import resource_path
 from app.repositories.device_repository import DeviceRepository
 
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]

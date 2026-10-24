@@ -9,7 +9,8 @@ from PySide6.QtCore import (
     QRegularExpression, Qt, QTimer, QSize, QPoint, QEasingCurve, QPropertyAnimation,
     QParallelAnimationGroup
 )
-from utils import launch_home_tabs, resource_path
+from app.goip.browser import launch_home_tabs
+from app.utils.paths import resource_path
 
 from app.models.goip_device import GoipDevice
 from app.repositories.device_repository import DeviceRepository
