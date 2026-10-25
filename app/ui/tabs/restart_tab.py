@@ -1,6 +1,6 @@
 import calendar, time, pytz
 from datetime import datetime, timedelta
-from PySide6.QtCore import Qt, QTimer, QDateTime, QTime, QThread, Signal
+from PySide6.QtCore import Qt, QTimer, QDateTime, QTime
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QCheckBox,
@@ -9,7 +9,6 @@ from PySide6.QtWidgets import (
 )
 
 # Your restart implementation (must exist)
-from app.services.restart_service import launch_restart_tabs
 from app.services.restart_scheduler import (
     next_occurrences_for_block,
     find_next_event,
@@ -19,31 +18,10 @@ from app.utils.paths import resource_path
 from app.repositories.device_repository import DeviceRepository
 from app.repositories.restart_settings_repository import RestartSettingsRepository
 from app.ui.widgets.schedule_block import ScheduleBlock, WEEKDAYS
+from app.ui.tabs.restart_worker import RestartWorker
 
 
 RESTART_FILE = get_appdata_path("restart_setting.json")
-
-# ---------- Worker ----------
-class RestartWorker(QThread):
-    finished = Signal()
-
-    def __init__(self, device_repository, device_index):
-        super().__init__()
-        self.device_repository = device_repository
-        self.device_index = device_index
-
-    def run(self):
-        try:
-            try:
-                launch_restart_tabs(
-                    self.device_repository,
-                    self.device_index + 1
-                )
-            except Exception:
-                pass
-        finally:
-            self.finished.emit()
-
 
 class RestartTab(QWidget):
     def __init__(
