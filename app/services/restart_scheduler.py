@@ -115,6 +115,42 @@ def prepare_recurrence_settings(
     )
 
 
+def next_occurrences_for_block(block, now, tz):
+    """Calculate upcoming events for every hour configured in a schedule block."""
+    (
+        recurrence,
+        selected_days,
+        selected_weekdays,
+        months,
+        years,
+    ) = prepare_recurrence_settings(
+        block.recurrence_mode,
+        block.daily_days,
+        block.weekly_days,
+        block.months,
+        block.years,
+    )
+
+    entries = []
+    for hour_str in block.hours:
+        hour, minute = map(int, hour_str.split(":"))
+        next_dt = next_occurrence_search(
+            now,
+            hour,
+            minute,
+            recurrence,
+            selected_days,
+            selected_weekdays,
+            months,
+            years,
+            tz,
+        )
+        if next_dt:
+            entries.append((next_dt, block, hour_str))
+
+    return entries
+
+
 def find_next_event(entries):
     """Return the earliest scheduled event, or an empty result."""
     if not entries:

@@ -11,8 +11,7 @@ from PySide6.QtWidgets import (
 # Your restart implementation (must exist)
 from app.services.restart_service import launch_restart_tabs
 from app.services.restart_scheduler import (
-    next_occurrence_search,
-    prepare_recurrence_settings,
+    next_occurrences_for_block,
     find_next_event,
 )
 from app.core.config import get_appdata_path
@@ -526,51 +525,24 @@ class RestartTab(QWidget):
             tz = pytz.UTC
         return datetime.now(tz)
 
-    def _gather_next_for_block_hour(self, blk, hour_str, now):
+    def _gather_all_next_entries(self):
+        now = self._current_reference_datetime()
+        # Do not modify custom_now while gathering scheduled events.
         try:
             tz = pytz.timezone(self.tz_dropdown.currentText())
         except Exception:
             tz = pytz.UTC
-        hh, mm = map(int, hour_str.split(":"))
-        (
-            recurrence,
-            selected_days,
-            selected_weekdays,
-            months,
-            years,
-        ) = prepare_recurrence_settings(
-            blk.recurrence_mode,
-            blk.daily_days,
-            blk.weekly_days,
-            blk.months,
-            blk.years,
-        )
-        return next_occurrence_search(
-            now,
-            hh,
-            mm,
-            recurrence,
-            selected_days,
-            selected_weekdays,
-            months,
-            years,
-            tz,
-        )
 
-    def _gather_all_next_entries(self):
-        now = self._current_reference_datetime()
-        # if custom_applied and custom_running -> make sure to not modify custom_now here
-        out = []
+        entries = []
         for i in range(self.blocks_container.count()):
             item = self.blocks_container.itemAt(i)
-            blk = item.widget() if item else None
-            if not blk:
+            block = item.widget() if item else None
+            if not block:
                 continue
-            for hour in blk.hours:
-                nxt = self._gather_next_for_block_hour(blk, hour, now)
-                if nxt:
-                    out.append((nxt, blk, hour))
-        return out
+
+            entries.extend(next_occurrences_for_block(block, now, tz))
+
+        return entries
 
     def _find_next_event(self):
         entries = self._gather_all_next_entries()

@@ -194,5 +194,53 @@ class TestFindNextEvent(unittest.TestCase):
         self.assertEqual(find_next_event([]), (None, None, None))
 
 
+class TestNextOccurrencesForBlock(unittest.TestCase):
+    def test_returns_next_occurrence_for_each_block_hour(self):
+        from types import SimpleNamespace
+
+        from app.services.restart_scheduler import next_occurrences_for_block
+
+        tz = pytz.timezone("Asia/Manila")
+        now = tz.localize(datetime(2026, 10, 24, 10, 0))
+        block = SimpleNamespace(
+            recurrence_mode="daily",
+            daily_days=set(),
+            weekly_days=set(),
+            months=set(),
+            years=set(),
+            hours=["11:30", "14:00"],
+        )
+
+        result = next_occurrences_for_block(block, now, tz)
+
+        self.assertEqual(
+            result,
+            [
+                (tz.localize(datetime(2026, 10, 24, 11, 30)), block, "11:30"),
+                (tz.localize(datetime(2026, 10, 24, 14, 0)), block, "14:00"),
+            ],
+        )
+
+    def test_skips_hours_without_a_next_occurrence(self):
+        from types import SimpleNamespace
+
+        from app.services.restart_scheduler import next_occurrences_for_block
+
+        tz = pytz.timezone("Asia/Manila")
+        now = tz.localize(datetime(2026, 10, 24, 10, 0))
+        block = SimpleNamespace(
+            recurrence_mode="daily",
+            daily_days=set(),
+            weekly_days=set(),
+            months=set(),
+            years={2025},
+            hours=["11:30"],
+        )
+
+        result = next_occurrences_for_block(block, now, tz)
+
+        self.assertEqual(result, [])
+
+
 if __name__ == "__main__":
     unittest.main()
