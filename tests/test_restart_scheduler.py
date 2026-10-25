@@ -111,6 +111,23 @@ class TestNextOccurrenceSearch(unittest.TestCase):
             self.tz.localize(datetime(2027, 1, 1, 11, 0)),
         )
 
+    def test_past_selected_year_returns_no_occurrence(self):
+        now = self.tz.localize(datetime(2026, 10, 24, 10, 0))
+
+        result = next_occurrence_search(
+            now=now,
+            hour=11,
+            minute=0,
+            recurrence="daily",
+            selected_days=set(),
+            selected_weekdays=set(),
+            selected_months=set(),
+            selected_years={2025},
+            tz=self.tz,
+        )
+
+        self.assertIsNone(result)
+
     def test_day_beyond_month_length_maps_to_first_of_next_month(self):
         # November has 30 days, so selecting day 31 maps to December 1.
         now = self.tz.localize(datetime(2026, 11, 30, 12, 0))
