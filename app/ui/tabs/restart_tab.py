@@ -547,7 +547,6 @@ class RestartTab(QWidget):
         next_dt = next_dt.replace(microsecond=0)
 
         delta = next_dt - now
-        after_delta = now - next_dt
         if delta.total_seconds() < 0:
             delta = timedelta(seconds=0)
         seconds = delta.total_seconds()
