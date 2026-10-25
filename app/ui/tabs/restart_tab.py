@@ -1,4 +1,5 @@
-import calendar, time, pytz
+import time
+import pytz
 from datetime import datetime, timedelta
 from PySide6.QtCore import Qt, QTimer, QDateTime, QTime
 from PySide6.QtGui import QIcon
@@ -14,10 +15,9 @@ from app.services.restart_scheduler import (
     find_next_event,
 )
 from app.core.config import get_appdata_path
-from app.utils.paths import resource_path
 from app.repositories.device_repository import DeviceRepository
 from app.repositories.restart_settings_repository import RestartSettingsRepository
-from app.ui.widgets.schedule_block import ScheduleBlock, WEEKDAYS
+from app.ui.widgets.schedule_block import ScheduleBlock
 from app.ui.tabs.restart_worker import RestartWorker
 
 
