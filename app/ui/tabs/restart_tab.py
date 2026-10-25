@@ -1,4 +1,4 @@
-import os, json, calendar, time, pytz
+import calendar, time, pytz
 from datetime import datetime, timedelta
 from PySide6.QtCore import Qt, QTimer, QDateTime, QTime, QThread, Signal
 from PySide6.QtGui import QIcon
@@ -17,6 +17,7 @@ from app.services.restart_scheduler import (
 from app.core.config import get_appdata_path
 from app.utils.paths import resource_path
 from app.repositories.device_repository import DeviceRepository
+from app.repositories.restart_settings_repository import RestartSettingsRepository
 from app.ui.widgets.schedule_block import ScheduleBlock, WEEKDAYS
 
 
@@ -55,6 +56,7 @@ class RestartTab(QWidget):
 
         self.device_repository = device_repository
         self.settings_file = settings_file
+        self.settings_repository = RestartSettingsRepository(self.settings_file)
 
         self.devices = self.device_repository.load_devices()
 
@@ -735,19 +737,14 @@ class RestartTab(QWidget):
             "auto_start": self.auto_start_checkbox.isChecked()  # ✅ new
         }
         try:
-            with open(self.settings_file, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=4)
+            self.settings_repository.save_settings(data)
             QMessageBox.information(self, "Saved", "Restart settings saved.")
         except Exception:
             QMessageBox.warning(self, "Save Failed", "Could not save restart settings.")
 
     def _load_settings(self):
-        if not os.path.exists(self.settings_file):
-            return
-        try:
-            with open(self.settings_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception:
+        data = self.settings_repository.load_settings()
+        if not data:
             return
 
         tz = data.get("timezone")
