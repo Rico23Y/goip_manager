@@ -13,6 +13,7 @@ from app.services.restart_service import launch_restart_tabs
 from app.services.restart_scheduler import (
     next_occurrence_search,
     prepare_recurrence_settings,
+    find_next_event,
 )
 from app.core.config import get_appdata_path
 from app.utils.paths import resource_path
@@ -573,10 +574,7 @@ class RestartTab(QWidget):
 
     def _find_next_event(self):
         entries = self._gather_all_next_entries()
-        if not entries:
-            return None, None, None
-        entries.sort(key=lambda t: t[0])
-        return entries[0]
+        return find_next_event(entries)
 
     def _scheduler_tick(self):
         if not self.scheduler_running:

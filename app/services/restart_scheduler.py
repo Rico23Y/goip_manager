@@ -113,3 +113,11 @@ def prepare_recurrence_settings(
         set(months) if months else set(),
         set(years) if years else set(),
     )
+
+
+def find_next_event(entries):
+    """Return the earliest scheduled event, or an empty result."""
+    if not entries:
+        return None, None, None
+
+    return min(entries, key=lambda entry: entry[0])

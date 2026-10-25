@@ -171,5 +171,28 @@ class TestPrepareRecurrenceSettings(unittest.TestCase):
         )
 
 
+class TestFindNextEvent(unittest.TestCase):
+    def test_returns_earliest_event(self):
+        from app.services.restart_scheduler import find_next_event
+
+        tz = pytz.timezone("Asia/Manila")
+        later = tz.localize(datetime(2026, 10, 25, 12, 0))
+        earlier = tz.localize(datetime(2026, 10, 25, 9, 0))
+        entries = [
+            (later, "block_later", "12:00"),
+            (earlier, "block_earlier", "09:00"),
+        ]
+
+        self.assertEqual(
+            find_next_event(entries),
+            (earlier, "block_earlier", "09:00"),
+        )
+
+    def test_returns_empty_result_when_no_entries(self):
+        from app.services.restart_scheduler import find_next_event
+
+        self.assertEqual(find_next_event([]), (None, None, None))
+
+
 if __name__ == "__main__":
     unittest.main()
