@@ -116,6 +116,7 @@ class PortStatusTab(QWidget):
         self.pixmap_cache = {}
         self.label_cache = {}
         self.goip_layouts = {}
+        self.static_device_config = None
         self.goip_frame_cache = {}
         self.monitor_running = False
         self.shutting_down = False
@@ -253,6 +254,10 @@ class PortStatusTab(QWidget):
                 widget.deleteLater()
 
         devices = self.device_repository.load_devices()
+        self.static_device_config = tuple(
+            (device.goip, device.ip_address)
+            for device in devices
+        )
 
         # Set goip -> ip map for hover tooltip use
         self.goip_ip_map = {
@@ -429,6 +434,16 @@ class PortStatusTab(QWidget):
             return
 
         devices = self.device_repository.load_devices()
+
+        current_config = tuple(
+            (device.goip, device.ip_address)
+            for device in devices
+        )
+
+        if self.static_device_config != current_config:
+            self.static_device_config = current_config
+            self.show_goip_ip_status()
+            return
 
         # Update goip -> ip map
         self.goip_ip_map = {
