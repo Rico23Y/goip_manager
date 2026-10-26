@@ -24,20 +24,11 @@ from app.repositories.device_repository import DeviceRepository
 from app.ui.dialogs.notification_settings_dialog import NotificationSettingsDialog
 from app.ui.workers.port_check_worker import PortCheckWorker
 from app.ui.workers.icon_loader_worker import IconLoaderWorker
+from app.ui.workers.monitor_worker import MonitorWorker
 
 #from test_00 import get_goip_status_fake_data # testing data
 _ICON_SIZE = QSize(18, 18)
 
-
-class MonitorWorker(QObject):
-    finished = Signal()
-    def __init__(self, run_callback):
-        super().__init__()
-        self.run_callback = run_callback
-
-    def run(self):
-        self.run_callback()
-        self.finished.emit()
 
 class PortStatusTab(QWidget):
     def __init__(
