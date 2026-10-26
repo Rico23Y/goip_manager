@@ -210,9 +210,70 @@ class PortStatusTab(QWidget):
         self.open_all_browser_button.clicked.connect(lambda: launch_view_tabs(self.device_repository, 0))
         self.show_goip_ip_status()
 
+    def _create_static_goip_frame(self, goip_label, ip, idx, include_browser_button=False):
+        """Create a GOIP status frame for the static view."""
+        frame = QFrame()
+        frame.setFrameShape(QFrame.NoFrame)
+
+        if include_browser_button:
+            palette = frame.palette()
+            palette.setColor(
+                QPalette.Window,
+                QColor("#ebf3fc" if idx % 2 else "white"),
+            )
+            frame.setAutoFillBackground(True)
+            frame.setPalette(palette)
+        else:
+            frame.setStyleSheet(
+                "background-color: #ebf3fc;"
+                if idx % 2
+                else "background-color: white"
+            )
+
+        layout = QHBoxLayout(frame)
+
+        goip_lbl = QLabel(goip_label)
+        ip_lbl = QLabel(f"IP: {ip}")
+        status_lbl = QLabel("Checking...")
+        status_lbl.setStyleSheet("color: gray; font-weight: bold")
+
+        frame.goip_lbl = goip_lbl
+        frame.ip_lbl = ip_lbl
+        frame.status_lbl = status_lbl
+
+        layout.addWidget(goip_lbl)
+        layout.addWidget(ip_lbl)
+        layout.addWidget(status_lbl)
+        layout.addStretch()
+
+        if include_browser_button:
+            browser_btn = QPushButton(
+                f"Open {goip_label} Port Inspection in browser"
+            )
+            browser_btn.setMinimumWidth(300)
+            browser_btn.setIcon(QIcon(resource_path("icons", "browser.png")))
+            browser_btn.setIconSize(_ICON_SIZE)
+            browser_btn.setToolTip(f"Open {goip_label} inbox in browser")
+
+            try:
+                goip_number = int(goip_label.split()[-1])
+            except ValueError:
+                goip_number = idx
+
+            browser_btn.clicked.connect(
+                lambda _, n=goip_number: launch_view_tabs(
+                    self.device_repository, n
+                )
+            )
+            layout.addWidget(browser_btn)
+
+        return frame
+
+
     def show_goip_ip_status(self):
         if self.shutting_down:
             return
+
         # Clear layout
         while self.scroll_layout.count():
             item = self.scroll_layout.takeAt(0)
@@ -243,46 +304,17 @@ class PortStatusTab(QWidget):
             goip_label = f"GOIP {idx}"
             ip = dev.ip_address
 
-            # Placeholder UI
-            frame = QFrame()
-            frame.setFrameShape(QFrame.NoFrame)
-            palette = frame.palette()
-            palette.setColor(QPalette.Window, QColor("#ebf3fc" if idx % 2 else "white"))
-            frame.setAutoFillBackground(True)
-            frame.setPalette(palette)
-            layout = QHBoxLayout(frame)
-
-            goip_lbl = QLabel(goip_label)
-            ip_lbl = QLabel(f"IP: {ip}")
-            status_lbl = QLabel("Checking...")
-            status_lbl.setStyleSheet("color: gray; font-weight: bold")
-
-            # Browser button
-            browser_btn = QPushButton(f"Open {goip_label} Port Inspection in browser")
-            browser_btn.setMinimumWidth(300)
-            browser_btn.setIcon(QIcon(resource_path("icons", "browser.png")))
-            browser_btn.setIconSize(_ICON_SIZE)
-            browser_btn.setToolTip(f"Open {goip_label} inbox in browser")
-            try:
-                goip_number = int(goip_label.split()[-1])
-            except ValueError:
-                goip_number = idx
-            browser_btn.clicked.connect(lambda _, n=goip_number: launch_view_tabs(self.device_repository, n))
-
-            # Attach attributes
-            frame.goip_lbl = goip_lbl
-            frame.ip_lbl = ip_lbl
-            frame.status_lbl = status_lbl
-
-            layout.addWidget(goip_lbl)
-            layout.addWidget(ip_lbl)
-            layout.addWidget(status_lbl)
-            layout.addStretch()
-            layout.addWidget(browser_btn)
+            # Create frame, labels, and browser button
+            frame = self._create_static_goip_frame(
+                goip_label,
+                ip,
+                idx,
+                include_browser_button=True,
+            )
 
             self.scroll_layout.addWidget(frame)
             self.goip_frame_cache[goip_label] = frame
-            self.last_static_status[goip_label] = (ip, None)  # status unknown yet
+            self.last_static_status[goip_label] = (ip, None)
 
             # Start threaded port check
             task = PortCheckWorker(goip_label, ip)
@@ -437,32 +469,11 @@ class PortStatusTab(QWidget):
             frame = self.goip_frame_cache.get(goip_label)
 
             if not frame:
-                # Build new frame
-                frame = QFrame()
-                frame.setFrameShape(QFrame.NoFrame)
-                frame.setStyleSheet(
-                    "background-color: #ebf3fc;"
-                    if idx % 2
-                    else "background-color: white"
+                frame = self._create_static_goip_frame(
+                    goip_label,
+                    ip,
+                    idx,
                 )
-
-                layout = QHBoxLayout(frame)
-
-                goip_lbl = QLabel(goip_label)
-                ip_lbl = QLabel(f"IP: {ip}")
-                status_lbl = QLabel("Checking...")
-                status_lbl.setStyleSheet(
-                    "color: gray; font-weight: bold"
-                )
-
-                frame.goip_lbl = goip_lbl
-                frame.ip_lbl = ip_lbl
-                frame.status_lbl = status_lbl
-
-                layout.addWidget(goip_lbl)
-                layout.addWidget(ip_lbl)
-                layout.addWidget(status_lbl)
-                layout.addStretch()
 
                 self.scroll_layout.addWidget(frame)
                 self.goip_frame_cache[goip_label] = frame
