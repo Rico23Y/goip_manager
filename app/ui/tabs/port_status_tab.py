@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPixmap, QIcon, QIntValidator, QPalette, QColor
 from PySide6.QtCore import (
     Qt, QTimer, QObject, Signal, QThread, Slot,
-    QRunnable, QThreadPool, QSize,
+    QThreadPool, QSize,
 )
 from app.services.port_status_orchestrator import (
     start_goip_monitoring,
@@ -23,6 +23,7 @@ import os
 from app.repositories.device_repository import DeviceRepository
 from app.ui.dialogs.notification_settings_dialog import NotificationSettingsDialog
 from app.ui.workers.port_check_worker import PortCheckWorker
+from app.ui.workers.icon_loader_worker import IconLoaderWorker
 
 #from test_00 import get_goip_status_fake_data # testing data
 _ICON_SIZE = QSize(18, 18)
@@ -37,35 +38,6 @@ class MonitorWorker(QObject):
     def run(self):
         self.run_callback()
         self.finished.emit()
-
-class IconLoaderSignals(QObject):
-    result = Signal(object)  # will carry a Python object (list of results)
-
-
-class IconLoaderWorker(QRunnable):
-    def __init__(self, tasks, cache):
-        super().__init__()
-        self.tasks = tasks
-        self.cache = cache  # reference to PortStatusTab.pixmap_cache
-        self.signals = IconLoaderSignals()
-
-    def run(self):
-        results = []
-        for goip_label, port_idx, row_idx, tooltip, icon_path in self.tasks:
-            cache_key = (icon_path, row_idx)
-            if cache_key in self.cache:
-                pixmap = self.cache[cache_key]
-            else:
-                if not os.path.exists(icon_path):
-                    continue
-                pixmap = QPixmap(icon_path).scaledToHeight(
-                    20 if row_idx == 0 else 18,
-                    Qt.SmoothTransformation
-                )
-                self.cache[cache_key] = pixmap
-            results.append((goip_label, port_idx, row_idx, tooltip, pixmap))
-        self.signals.result.emit(results)
-
 
 class PortStatusTab(QWidget):
     def __init__(
