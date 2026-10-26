@@ -694,6 +694,7 @@ class NotificationSettingsDialog(QDialog):
         save_btn.clicked.connect(self.save_and_close)
         self.container.layout().addWidget(save_btn, alignment=Qt.AlignRight)
 
+        self.enable_all_checkbox.stateChanged.connect(self.toggle_sections)
         self.toggle_sections()
         self.center_on_screen()
 
@@ -892,7 +893,6 @@ class NotificationSettingsDialog(QDialog):
         self.sim_group.setEnabled(enabled)
         self.network_group.setEnabled(enabled)
         self.signal_group.setEnabled(enabled)
-        self.enable_all_checkbox.stateChanged.connect(self.toggle_sections)
 
     def enforce_custom_signal_range_consistency(self):
         min_text = self.custom_signal_min.text()
