@@ -1,45 +1,17 @@
 import threading
-from PySide6.QtCore import Qt, QTimer, QSize, QRunnable, QThreadPool, Signal, QObject
+from PySide6.QtCore import Qt, QTimer, QSize, QThreadPool
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QScrollArea, QPushButton,
     QHBoxLayout, QFrame
 )
 from PySide6.QtGui import QIcon
 from app.services.inbox_sms_service import launch_inbox_sms_tabs
-from app.goip.connection import is_port_open
 from app.utils.paths import resource_path
 from app.repositories.device_repository import DeviceRepository
+from app.ui.workers.port_check_worker import PortCheckWorker
 
 _BTN_SIZE = QSize(28, 28)
 _ICON_SIZE = QSize(18, 18)
-
-# --- Worker signals ---
-class WorkerSignals(QObject):
-    result = Signal(str, str, bool)  # goip_label, ip, online
-
-# --- Worker task ---
-class PortCheckTask(QRunnable):
-    def __init__(self, goip_label, ip, stop_event):
-        super().__init__()
-        self.goip_label = goip_label
-        self.ip = ip
-        self.stop_event = stop_event
-        self.signals = WorkerSignals()
-
-    def run(self):
-        if self.stop_event.is_set():
-            return
-
-        online = is_port_open(self.ip)
-
-        if self.stop_event.is_set():
-            return
-
-        self.signals.result.emit(
-            self.goip_label,
-            self.ip,
-            online
-        )
 
 class InboxSMSTab(QWidget):
     def __init__(
@@ -165,7 +137,7 @@ class InboxSMSTab(QWidget):
             self.last_status_cache[goip_label] = (ip, None)  # unknown yet
 
             # Threaded port check
-            task = PortCheckTask(
+            task = PortCheckWorker(
                 goip_label,
                 ip,
                 self._stop_event
@@ -183,7 +155,7 @@ class InboxSMSTab(QWidget):
             goip_label = f"GOIP {idx}"
             ip = device.ip_address
 
-            task = PortCheckTask(
+            task = PortCheckWorker(
                 goip_label,
                 ip,
                 self._stop_event
