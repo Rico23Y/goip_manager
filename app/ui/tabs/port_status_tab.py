@@ -279,12 +279,15 @@ class PortStatusTab(QWidget):
             self.goip_frame_cache[goip_label] = frame
             self.last_static_status[goip_label] = (ip, None)
 
-            # Start threaded port check
-            task = PortCheckWorker(goip_label, ip)
-            task.signals.result.connect(self.update_port_status)
-            self.threadpool.start(task)
+            self._start_port_check(goip_label, ip)
 
     # --- Add this method to PortStatusTab ---
+    def _start_port_check(self, goip_label, ip):
+        """Run a background port check and handle its result."""
+        task = PortCheckWorker(goip_label, ip)
+        task.signals.result.connect(self.update_port_status)
+        self.threadpool.start(task)
+
     def update_port_status(self, goip_label, ip, online):
         if goip_label in self.goip_frame_cache:
             frame = self.goip_frame_cache[goip_label]
@@ -449,10 +452,7 @@ class PortStatusTab(QWidget):
                     "color: gray; font-weight: bold"
                 )
 
-            # Start threaded port check
-            task = PortCheckWorker(goip_label, ip)
-            task.signals.result.connect(self.update_port_status)
-            self.threadpool.start(task)
+            self._start_port_check(goip_label, ip)
 
     def refresh_data(self):
         if not self.monitor_running:
